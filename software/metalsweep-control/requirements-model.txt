@@ -1,0 +1,2 @@
+# Install in a --system-site-packages venv on Raspberry Pi OS; apt supplies Picamera2/OpenCV/GPIO.
+ultralytics==8.4.194

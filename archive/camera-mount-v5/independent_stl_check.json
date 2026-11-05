@@ -1,0 +1,50 @@
+{
+  "00a_post19p4_fit_coupon_x1.stl": {
+    "triangles": 1152,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 3.062
+  },
+  "00b_pitch_fork_coupon_x1.stl": {
+    "triangles": 564,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 2.167
+  },
+  "00c_pitch_ear_coupon_x1.stl": {
+    "triangles": 272,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 1.367
+  },
+  "01_hole20_base_with_mast_x1.stl": {
+    "triangles": 1704,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 9.925
+  },
+  "02_camera25_pitch_carrier_x1.stl": {
+    "triangles": 1870,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 4.916
+  },
+  "03_under_plate_washer_x1.stl": {
+    "triangles": 768,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 3.004
+  }
+}

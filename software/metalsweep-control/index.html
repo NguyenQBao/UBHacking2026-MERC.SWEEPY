@@ -1,0 +1,24 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>METALSWEEP 联动测试</title>
+<style>body{font:17px system-ui;max-width:950px;margin:24px auto;padding:0 18px;background:#eef3f5;color:#17303a}button{padding:14px;margin:5px;font-size:17px;border:1px solid #9aa;border-radius:8px;cursor:pointer}#stop{background:#a71925;color:white;font-weight:bold;font-size:22px}img{width:100%;max-width:640px;background:#123;min-height:100px}pre{white-space:pre-wrap;background:white;padding:15px}#error{color:#9d1722}a{color:#075866}</style>
+<h1>摄像头 · 左右轮 · 滚刷</h1>
+<p>默认模拟模式。每次点击仅执行一个短脉冲；自动只收一个目标，结束后停车待核验。页面必须保持前台。</p>
+<button id="stop" data-cmd="stop">停止全部 / 空格键</button>
+<p id="error"></p><img id="view" alt="等待相机"><p id="pixel">点击画面可查看标定像素坐标。</p>
+<div><button data-cmd="forward">前进一步</button><button data-cmd="back">后退一步</button>
+<button data-cmd="left">左转一步</button><button data-cmd="right">右转一步</button>
+<button data-cmd="brush">刷子短转</button><button data-cmd="auto">执行单次收集</button></div>
+<p><a href="/raw.jpg" download="calibration.jpg">保存无标注原图用于标定</a></p>
+<pre id="state">连接中</pre>
+<script>
+const token='__TOKEN__', view=document.querySelector('#view'), error=document.querySelector('#error');
+async function command(command){try{const r=await fetch('/command',{method:'POST',headers:{'Content-Type':'application/json','X-Control-Token':token},body:JSON.stringify({command}),signal:AbortSignal.timeout(1500)});const d=await r.json();if(!r.ok)throw Error(d.error);error.textContent=''}catch(e){error.textContent=e.message}}
+document.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=>command(b.dataset.cmd));
+addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();command('stop')}});
+addEventListener('blur',()=>command('stop'));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)command('stop')});
+setInterval(()=>{if(!document.hidden&&document.hasFocus())command('heartbeat')},500);
+view.onclick=e=>{const r=view.getBoundingClientRect();document.querySelector('#pixel').textContent=`u=${Math.round((e.clientX-r.left)*640/r.width)}, v=${Math.round((e.clientY-r.top)*480/r.height)}`};
+let previous;
+async function poll(){try{const r=await fetch('/state',{signal:AbortSignal.timeout(1500)});if(!r.ok)throw Error('状态读取失败');document.querySelector('#state').textContent=JSON.stringify(await r.json(),null,2);const f=await fetch('/frame.jpg',{signal:AbortSignal.timeout(1500)});if(f.ok){const next=URL.createObjectURL(await f.blob());view.src=next;if(previous)URL.revokeObjectURL(previous);previous=next}}catch(e){error.textContent=e.message}setTimeout(poll,300)}poll();
+</script></html>

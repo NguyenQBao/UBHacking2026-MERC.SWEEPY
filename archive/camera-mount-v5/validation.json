@@ -1,0 +1,91 @@
+{
+  "parameters": {
+    "hole_diameter": 20.0,
+    "assumed_acrylic_thickness": 3.0,
+    "plug_diameter": 19.4,
+    "plug_length": 2.5,
+    "plug_to_lower_washer_clearance": 0.5,
+    "pivot_height_above_plate": 64.0
+  },
+  "parts": {
+    "01_hole20_base_with_mast_x1": {
+      "bounds_mm": [
+        40.0,
+        40.0,
+        74.3
+      ],
+      "solid_cm3": 9.92,
+      "watertight": true,
+      "one_solid": true
+    },
+    "02_camera25_pitch_carrier_x1": {
+      "bounds_mm": [
+        37.0,
+        44.5,
+        26.0
+      ],
+      "solid_cm3": 4.92,
+      "watertight": true,
+      "one_solid": true
+    },
+    "03_under_plate_washer_x1": {
+      "bounds_mm": [
+        36.0,
+        36.0,
+        3.0
+      ],
+      "solid_cm3": 3.0,
+      "watertight": true,
+      "one_solid": true
+    },
+    "00a_post19p4_fit_coupon_x1": {
+      "bounds_mm": [
+        32.0,
+        32.0,
+        5.5
+      ],
+      "solid_cm3": 3.06,
+      "watertight": true,
+      "one_solid": true
+    },
+    "00b_pitch_fork_coupon_x1": {
+      "bounds_mm": [
+        28.0,
+        16.0,
+        17.0
+      ],
+      "solid_cm3": 2.17,
+      "watertight": true,
+      "one_solid": true
+    },
+    "00c_pitch_ear_coupon_x1": {
+      "bounds_mm": [
+        8.0,
+        12.0,
+        15.0
+      ],
+      "solid_cm3": 1.37,
+      "watertight": true,
+      "one_solid": true
+    }
+  },
+  "sampled_printed_part_collision_volume_mm3": {
+    "-20": 0.0,
+    "-15": 0.0,
+    "-10": 0.0,
+    "-5": 0.0,
+    "0": 0.0,
+    "5": 0.0,
+    "10": 0.0,
+    "15": 0.0,
+    "20": 0.0,
+    "25": 0.0,
+    "30": 0.0,
+    "35": 0.0,
+    "40": 0.0,
+    "45": 0.0,
+    "50": 0.0
+  },
+  "acrylic_intersection_volume_mm3": 0,
+  "note": "No actual PCB, ribbon, screw, chassis edge or hardware test."
+}

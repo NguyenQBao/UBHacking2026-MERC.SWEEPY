@@ -1,0 +1,26 @@
+{
+  "WALL_adhesive_support_PRINT_TWO.stl": {
+    "triangles": 168,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 28.115
+  },
+  "adhesive_support_axis_25mm_PRINT_TWO.stl": {
+    "triangles": 168,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 13.507
+  },
+  "adhesive_support_axis_60mm_PRINT_TWO.stl": {
+    "triangles": 168,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 23.587
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "00a_fit_wall_coupon_x1.stl": {
+    "triangles": 28,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 4.8
+  },
+  "00b_fit_lid_coupon_x1.stl": {
+    "triangles": 44,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 3.13
+  },
+  "01_box_body_x1.stl": {
+    "triangles": 476,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 242.118
+  },
+  "02_removable_lid_x1.stl": {
+    "triangles": 636,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 54.126
+  }
+}

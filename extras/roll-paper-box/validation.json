@@ -1,0 +1,42 @@
+{
+  "01_box_body_x1": {
+    "size_mm": [
+      126.0,
+      132.0,
+      135.0
+    ],
+    "solid_volume_cm3": 242.12,
+    "watertight": true,
+    "one_solid": true
+  },
+  "02_removable_lid_x1": {
+    "size_mm": [
+      126.0,
+      132.0,
+      9.0
+    ],
+    "solid_volume_cm3": 54.13,
+    "watertight": true,
+    "one_solid": true
+  },
+  "00a_fit_wall_coupon_x1": {
+    "size_mm": [
+      36.0,
+      28.0,
+      10.0
+    ],
+    "solid_volume_cm3": 4.8,
+    "watertight": true,
+    "one_solid": true
+  },
+  "00b_fit_lid_coupon_x1": {
+    "size_mm": [
+      36.0,
+      28.0,
+      8.0
+    ],
+    "solid_volume_cm3": 3.13,
+    "watertight": true,
+    "one_solid": true
+  }
+}

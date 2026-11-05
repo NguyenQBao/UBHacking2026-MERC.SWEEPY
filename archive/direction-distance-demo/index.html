@@ -1,0 +1,31 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>碎屑方向与距离测试</title>
+<style>body{font:16px system-ui;max-width:980px;margin:24px auto;padding:0 15px;background:#f3f6fa;color:#183344}canvas{width:100%;max-width:640px;background:#172633;cursor:crosshair}button,input{font:inherit;padding:8px;margin:4px}button{cursor:pointer}section{background:white;padding:16px;margin:15px 0;border-radius:12px}input{width:84px}pre{white-space:pre-wrap}#notice{min-height:25px;color:#9a4113}td,th{padding:8px;text-align:left}small{color:#526475}</style>
+<h1>碎屑方向与桌面距离</h1><p>固定相机与车身。先拍空桌面，再放碎屑。只做视觉测量，不控制电机。</p>
+<canvas id="view" width="640" height="480"></canvas><div id="notice"></div>
+<section><button id="reference">1 · 拍空桌面参考</button><button id="freeze">2 · 暂停画面并选四角</button><button id="resume">恢复实时画面</button>
+<p>在桌面量一个矩形，中心线与机器人正前方对齐；近边距刷子入口中心的前向距离要实测。</p>
+<label>矩形宽 mm<input id="width" type="number" value="200"></label><label>前后深 mm<input id="depth" type="number" value="200"></label><label>近边距离 mm<input id="near" type="number" value="100"></label>
+<p id="order">四角点击顺序：①近左 → ②近右 → ③远右 → ④远左。画面应近边在下、右侧确实为机器人右侧。</p>
+<button id="calibrate">3 · 应用标定并恢复画面</button><button id="resetpoints">重选四角</button><button id="clear">清除标定</button>
+<p><small>标定只在四角围成区域内估距。地面平面测距，原点是刷子入口的桌面投影，不是镜头到物体的斜线距离。标定不随页面刷新保存。</small></p></section>
+<section><h2>结果</h2><div id="status">等待图像</div><div id="table"></div><small>未标定时显示相对画面中心的左右方向。标定后显示相对机器人中心线的方向。变化区域可能是影子、手或反光，需人工确认。</small></section>
+<section><h2>4 · 用第五个点检查误差</h2><p>放一个没参与四角标定的点，量出其右向 x 和前向 y；点击下方按钮，再点画面中的检查点。</p>
+<label>x 右向 mm<input id="checkx" type="number" value="0"></label><label>y 前向 mm<input id="checky" type="number" value="200"></label><button id="check">暂停并点击检查点</button><pre id="checkresult"></pre></section>
+<script>
+const canvas=document.getElementById('view'),ctx=canvas.getContext('2d');
+let paused=false,points=[],mode='',currentImage=null;
+const $=id=>document.getElementById(id);
+function message(s){$('notice').textContent=s}
+async function post(path,data={}){const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok||d.error)throw Error(d.error||r.status);return d}
+function draw(){if(currentImage)ctx.drawImage(currentImage,0,0);ctx.fillStyle='#ffb000';ctx.strokeStyle='#ffb000';ctx.font='20px sans-serif';points.forEach((p,i)=>{ctx.beginPath();ctx.arc(...p,5,0,Math.PI*2);ctx.fill();ctx.fillText(String(i+1),p[0]+7,p[1]-7)});if(points.length>1){ctx.beginPath();ctx.moveTo(...points[0]);points.slice(1).forEach(p=>ctx.lineTo(...p));if(points.length===4)ctx.closePath();ctx.stroke()}}
+async function loop(){try{if(!paused){const r=await fetch('/state'),d=await r.json();if(!r.ok||d.error)throw Error(d.error||r.status);const img=new Image();img.src='data:image/jpeg;base64,'+d.jpeg;await img.decode();if(!paused){currentImage=img;draw();$('status').textContent=d.status+(d.calibrated?' · 已标定':' · 尚未标定');let html='<table><tr><th>候选</th><th>方向</th><th>前向</th><th>右向</th><th>平面距离</th><th>偏角</th></tr>';for(const [i,t] of d.targets.entries()){const m=t.measurement;html+=`<tr><td>${i+1}</td><td>${t.direction}</td><td>${m?m.y_forward_mm+' mm':'—'}</td><td>${m?m.x_right_mm+' mm':'—'}</td><td>${m?m.ground_range_mm+' mm':'—'}</td><td>${m?m.bearing_right_deg+'°':'—'}</td></tr>`}$('table').innerHTML=html+'</table>'}}}catch(e){$('status').textContent='图像不可用：'+e.message;$('table').textContent='';currentImage=null;ctx.clearRect(0,0,640,480)}finally{setTimeout(loop,250)}}
+$('reference').onclick=async()=>{try{message((await post('/reference')).message)}catch(e){message(e.message)}};
+$('freeze').onclick=()=>{if(!currentImage)return message('先等待一张有效图像');paused=true;points=[];mode='cal';draw();message('依次点击：近左、近右、远右、远左')};
+$('resume').onclick=()=>{paused=false;mode='';points=[]};
+$('resetpoints').onclick=()=>{points=[];draw()};
+$('clear').onclick=async()=>{try{await post('/clear');message('标定已清除');points=[];paused=false;mode=''}catch(e){message(e.message)}};
+$('calibrate').onclick=async()=>{try{if(points.length!==4)throw Error('请先暂停并选四角');const r=await post('/calibrate',{points,width_mm:+$('width').value,depth_mm:+$('depth').value,near_mm:+$('near').value});message(r.message);points=[];paused=false;mode=''}catch(e){message(e.message)}};
+$('check').onclick=()=>{if(!currentImage)return message('先等待有效图像');paused=true;mode='check';points=[];message('点击第五个检查点')};
+canvas.onclick=async e=>{if(!paused)return;const r=canvas.getBoundingClientRect(),p=[(e.clientX-r.left)*640/r.width,(e.clientY-r.top)*480/r.height];if(mode==='cal'&&points.length<4){points.push(p);draw();message('已选 '+points.length+'/4 个点')}else if(mode==='check'){try{const d=await post('/check',{u:p[0],v:p[1],x_mm:+$('checkx').value,y_mm:+$('checky').value});$('checkresult').textContent=JSON.stringify(d,null,2);points=[p];draw()}catch(e){message(e.message)}}};
+loop();
+</script></html>

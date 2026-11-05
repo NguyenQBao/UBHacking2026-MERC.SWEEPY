@@ -1,0 +1,7 @@
+__pycache__/
+.venv/
+runtime/
+*.pt
+*_ncnn_model/
+ground.json
+calibration.jpg

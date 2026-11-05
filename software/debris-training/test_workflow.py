@@ -1,0 +1,138 @@
+"""Checks actual labels/splits/snapshots; requires Pillow, not a GPU or camera."""
+from io import BytesIO
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from threading import Thread
+import unittest
+from urllib.error import HTTPError
+from urllib.request import Request, build_opener, ProxyHandler
+from http.server import ThreadingHTTPServer
+from PIL import Image, ImageDraw
+
+from studio import Handler, Jobs, Store
+from workflow import snapshot, latest_model
+
+
+def photo(index):
+    image = Image.new('RGB', (100, 80), (index % 256, index // 256, 140))
+    ImageDraw.Draw(image).text((10, 10), str(index), fill=(255, 255, 255))
+    data = BytesIO()
+    image.save(data, format='PNG')
+    return data.getvalue()
+
+
+class WorkflowTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.store = Store(self.root / 'data')
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def add(self, index, split='train', reviewed=True, boxes=None):
+        r = self.store.add(photo(index), 'scene_' + split, split)
+        if reviewed:
+            labels = [[10, 20, 50, 60]] if boxes is None else boxes
+            r = self.store.save(r['id'], labels, not labels, 0)
+        return r
+
+    def test_batches_50_and_persistence(self):
+        records = [self.add(i, reviewed=False) for i in range(51)]
+        self.assertEqual(records[49]['batch'], 1)
+        self.assertEqual(records[50]['batch'], 2)
+        summary = Store(self.store.root).summary()
+        self.assertEqual((summary['total'], summary['reviewed'], summary['in_batch']), (51, 0, 1))
+
+    def test_explicit_negatives_and_stale_edits(self):
+        r = self.add(1, reviewed=False)
+        for labels, negative in (([], False), ([[5, 5, 20, 20]], True),
+                                 ([[0, 0, 101, 20]], False), ([[0, 0, float('nan'), 20]], False)):
+            with self.assertRaises(ValueError):
+                self.store.save(r['id'], labels, negative, 0)
+        self.store.save(r['id'], [], True, 0)
+        self.assertEqual(self.store.summary()['counts']['train']['negative'], 1)
+        with self.assertRaises(ValueError):
+            self.store.save(r['id'], [], True, 0)
+
+    def test_scene_and_duplicate_leakage_rejected(self):
+        self.add(1)
+        with self.assertRaises(ValueError):
+            self.store.add(photo(2), 'scene_train', 'test')
+        with self.assertRaises(ValueError):
+            self.store.add(photo(1), 'other_scene', 'test')
+
+    def test_cumulative_export_exact_yolo_and_frozen_snapshot(self):
+        first = self.add(1)
+        self.add(2, 'val')
+        negative = self.add(3, 'train', boxes=[])
+        self.add(4, 'test')
+        pending = self.add(5, reviewed=False)
+        destination = self.root / 'snapshot1'
+        yaml = snapshot(self.store.root, destination)
+        values = (destination / 'labels/train' / (first['id'] + '.txt')).read_text().split()
+        self.assertEqual(values[0], '0')
+        self.assertEqual([float(v) for v in values[1:]], [.3, .5, .4, .5])
+        self.assertEqual((destination / 'labels/train' / (negative['id'] + '.txt')).read_text(), '')
+        self.assertFalse((destination / 'images/train' / (pending['id'] + '.jpg')).exists())
+        self.assertIn('names:\n  0: debris', yaml.read_text())
+        frozen = (destination / 'labels/train' / (first['id'] + '.txt')).read_bytes()
+        self.store.save(first['id'], [[20, 20, 60, 60]], False, 1)
+        self.assertEqual((destination / 'labels/train' / (first['id'] + '.txt')).read_bytes(), frozen)
+        self.store.save(pending['id'], [[5, 5, 15, 15]], False, 0)
+        snapshot(self.store.root, self.root / 'snapshot2')
+        provenance = json.loads((self.root / 'snapshot2/provenance.json').read_text())
+        self.assertEqual(provenance['counts']['train']['images'], 3)
+
+    def test_missing_validation_and_changed_images_rejected(self):
+        r = self.add(1)
+        with self.assertRaises(ValueError):
+            snapshot(self.store.root, self.root / 'no_val')
+        self.add(2, 'val')
+        (self.store.root / r['file']).write_bytes(photo(30))
+        with self.assertRaises(ValueError):
+            snapshot(self.store.root, self.root / 'changed')
+
+    def test_failed_round_not_used_as_next_model(self):
+        for name in ('round_001', 'round_002'):
+            folder = self.store.root / 'runs' / name
+            (folder / 'weights').mkdir(parents=True)
+            (folder / 'weights/best.pt').write_bytes(b'test only')
+        (self.store.root / 'runs/round_001/round.json').write_text('{}')
+        self.assertIn('round_001', str(latest_model(self.store.root)))
+
+    def test_http_import_label_and_origin_boundary(self):
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        server.store, server.jobs, server.camera_url = self.store, Jobs(self.store.root), ''
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        opener = build_opener(ProxyHandler({}))
+        base = f'http://127.0.0.1:{server.server_port}'
+        try:
+            with opener.open(base + '/') as response:
+                self.assertIn('碎片训练工作台', response.read().decode())
+            upload = Request(base + '/api/import?session=testdesk&split=train', photo(3),
+                             {'Content-Type': 'application/octet-stream'})
+            with opener.open(upload) as response:
+                r = json.load(response)
+            data = dict(id=r['id'], boxes=[[10, 10, 20, 20]], negative=False, revision=0)
+            label = Request(base + '/api/label', json.dumps(data).encode(), {'Content-Type': 'application/json'})
+            with opener.open(label) as response:
+                self.assertTrue(json.load(response)['reviewed'])
+            with opener.open(base + '/image/' + r['id'] + '.jpg') as response:
+                self.assertEqual(Image.open(BytesIO(response.read())).size, (100, 80))
+            for headers in ({'Origin': 'https://unrelated.example'}, {'Host': 'unrelated.example'}):
+                bad = Request(base + '/api/label', json.dumps(data).encode(),
+                              {'Content-Type': 'application/json', **headers})
+                with self.assertRaises(HTTPError) as caught:
+                    opener.open(bad)
+                caught.exception.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+
+if __name__ == '__main__':
+    unittest.main()

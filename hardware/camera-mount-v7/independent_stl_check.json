@@ -1,0 +1,146 @@
+{
+  "00a_base_thread_nut_coupon.stl": {
+    "triangles": 2888,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 3.075
+  },
+  "00a_base_thread_screw_coupon.stl": {
+    "triangles": 4338,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 4.296
+  },
+  "00b_pitch_thread_nut_coupon.stl": {
+    "triangles": 4176,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 1.903
+  },
+  "00b_pitch_thread_screw_coupon.stl": {
+    "triangles": 8522,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 1.632
+  },
+  "00c_snap_post_coupon.stl": {
+    "triangles": 500,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 0.484
+  },
+  "00c_snap_retainer_coupon.stl": {
+    "triangles": 304,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 0.395
+  },
+  "01_base_clamp_screw_x1.stl": {
+    "triangles": 5398,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 10.063
+  },
+  "02_mast_120mm_choose_one.stl": {
+    "triangles": 5142,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 37.49
+  },
+  "02_mast_120mm_forward45_choose_one.stl": {
+    "triangles": 5186,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 37.565
+  },
+  "02_mast_60mm_choose_one.stl": {
+    "triangles": 5142,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 27.41
+  },
+  "02_mast_60mm_forward45_choose_one.stl": {
+    "triangles": 5226,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 27.656
+  },
+  "02_mast_90mm_choose_one.stl": {
+    "triangles": 5142,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 32.45
+  },
+  "02_mast_90mm_forward45_choose_one.stl": {
+    "triangles": 5204,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 32.576
+  },
+  "03_camera25_pitch_frame_x1.stl": {
+    "triangles": 2428,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 9.238
+  },
+  "04_camera_back_retainer_x1.stl": {
+    "triangles": 1230,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 2.663
+  },
+  "05_pitch_thumb_screw_x1.stl": {
+    "triangles": 17162,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 3.663
+  },
+  "06_pitch_thumb_nut_x1.stl": {
+    "triangles": 5942,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 3.564
+  },
+  "07_camera_edge_shim_0p4_optional.stl": {
+    "triangles": 32,
+    "closed_two_faces_per_edge": true,
+    "opposite_edge_winding": true,
+    "nondegenerate": true,
+    "z_min_mm": 0,
+    "volume_cm3": 0.056
+  }
+}
