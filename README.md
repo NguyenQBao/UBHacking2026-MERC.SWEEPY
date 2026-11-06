@@ -49,7 +49,11 @@ flowchart LR
 
 ## 当前模型
 
-打印文件见 [hardware/cad-v8](hardware/cad-v8)。此前的V7摄像头支架与V3刷子件已移至 [archive/camera-mount-v7](archive/camera-mount-v7) 和 [archive/brush-collector-v3](archive/brush-collector-v3)，不与V8零件混装。尺寸确认状态见[尺寸记录](docs/MEASUREMENTS.md)。
+打印文件见 [hardware/cad-v8](hardware/cad-v8)：收集盒装在底盘前端下方，斜坡接在盒前缘，滚刷主轴由减速电机直接驱动，把碎片扫上斜坡进盒。
+
+![V8收集机构试装照片](hardware/cad-v8/assembly_photo.jpg)
+
+此前的V7摄像头支架与V3刷子件已移至 [archive/camera-mount-v7](archive/camera-mount-v7) 和 [archive/brush-collector-v3](archive/brush-collector-v3)，不与V8零件混装。尺寸确认状态见[尺寸记录](docs/MEASUREMENTS.md)。
 
 ## 文件与来源
 
