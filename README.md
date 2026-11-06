@@ -21,11 +21,10 @@
 | [software/debris-training](software/debris-training) | Mac网页采集、框标注、累计YOLO训练、评估、NCNN导出、COCO导入 | 当前训练工具 |
 | [software/metalsweep-control](software/metalsweep-control) | CSI图像、目标检测、地面映射、左右轮与刷子有时限控制 | 默认模拟，核验后才启用GPIO |
 | [software/debris-detector-pi4](software/debris-detector-pi4) | 颜色/静态背景检测网页、原图接口 | 独立诊断工具；背景法要求车/光照固定 |
-| [hardware/camera-mount-v7](hardware/camera-mount-v7) | 全打印摄像头支架、18个STL、源码、装配预览和网格记录 | 试装原型，先打印配合试件 |
-| [hardware/brush-collector-v3](hardware/brush-collector-v3) | 通用刷子版底盘、集尘盒、斜坡与支撑试件 | 旧通用方案，须按现有亚克力车改配合 |
+| [hardware/cad-v8](hardware/cad-v8) | 当前模型：摄像头支架（竖杆/横杆/前部件）、滚刷主轴、清扫轮、斜坡、收集盒，共7个STL | 网格已检查，尚未打印试装 |
 | [hardware/wiring](hardware/wiring) | Pi4B/L298N官方原图接线图与排版源码 | 电压/跳帽按实物核对 |
 | [docs/camera-orientation](docs/camera-orientation) | 摄像头朝向概念图 | 概念参考 |
-| [archive](archive) | 较早版本的底盘、支架、装配图与算法演示 | 历史参考，不混装不同版本零件 |
+| [archive](archive) | 较早版本的底盘、支架（含V7支架、V3刷子件）、装配图与算法演示 | 历史参考，不混装不同版本零件 |
 | [extras](extras) | 独立卷纸盒、粘贴式卷纸支架 | 与机器人分开的附加项目 |
 
 ## 当前联动设计
@@ -48,11 +47,9 @@ flowchart LR
 
 当前采用固定相机和平面标定。目标消失不等于已进盒；没有桌沿/碰撞/堵转感知，实物运动测试先使用有围挡的地面。软件超时关闭输出不能代替实体电源开关。
 
-## 摄像头支架V7预览
+## 当前模型
 
-![V7打印支架装配示意](hardware/camera-mount-v7/assembly_preview.png)
-
-图中的PCB、镜头和亚克力板为示意，不包含在STL中。大螺纹/俯仰螺纹均为自定义配对牙型，不能用标准金属螺母替换。20mm安装孔、3mm底板与1.6mm裸PCB厚度等尺寸的确认状态见[尺寸记录](docs/MEASUREMENTS.md)。
+打印文件见 [hardware/cad-v8](hardware/cad-v8)。此前的V7摄像头支架与V3刷子件已移至 [archive/camera-mount-v7](archive/camera-mount-v7) 和 [archive/brush-collector-v3](archive/brush-collector-v3)，不与V8零件混装。尺寸确认状态见[尺寸记录](docs/MEASUREMENTS.md)。
 
 ## 文件与来源
 

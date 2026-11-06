@@ -187,301 +187,301 @@
   },
   {
     "source": "camera-mount-v7-all-printed/00a_base_thread_nut_coupon.stl",
-    "destination": "hardware/camera-mount-v7/00a_base_thread_nut_coupon.stl",
+    "destination": "archive/camera-mount-v7/00a_base_thread_nut_coupon.stl",
     "source_sha256": "ae11a42379785331ad27244c5bfae9e7d88aa15c1cf634d9e4e1161760e2c7f7",
     "published_sha256": "ae11a42379785331ad27244c5bfae9e7d88aa15c1cf634d9e4e1161760e2c7f7"
   },
   {
     "source": "camera-mount-v7-all-printed/00a_base_thread_screw_coupon.stl",
-    "destination": "hardware/camera-mount-v7/00a_base_thread_screw_coupon.stl",
+    "destination": "archive/camera-mount-v7/00a_base_thread_screw_coupon.stl",
     "source_sha256": "5716dc0e3e308366c6f7efbc498f474969b1321dccaf08050ba414f59a534e1d",
     "published_sha256": "5716dc0e3e308366c6f7efbc498f474969b1321dccaf08050ba414f59a534e1d"
   },
   {
     "source": "camera-mount-v7-all-printed/00b_pitch_thread_nut_coupon.stl",
-    "destination": "hardware/camera-mount-v7/00b_pitch_thread_nut_coupon.stl",
+    "destination": "archive/camera-mount-v7/00b_pitch_thread_nut_coupon.stl",
     "source_sha256": "94d313233bca1a7f371a599032b58ef6d3e341d88ed5efa1de39c2aeb5d2591e",
     "published_sha256": "94d313233bca1a7f371a599032b58ef6d3e341d88ed5efa1de39c2aeb5d2591e"
   },
   {
     "source": "camera-mount-v7-all-printed/00b_pitch_thread_screw_coupon.stl",
-    "destination": "hardware/camera-mount-v7/00b_pitch_thread_screw_coupon.stl",
+    "destination": "archive/camera-mount-v7/00b_pitch_thread_screw_coupon.stl",
     "source_sha256": "c8ea90ddc07288cd836917d0735d6e8e46f63564b5232c856da32e71081dbc47",
     "published_sha256": "c8ea90ddc07288cd836917d0735d6e8e46f63564b5232c856da32e71081dbc47"
   },
   {
     "source": "camera-mount-v7-all-printed/00c_snap_post_coupon.stl",
-    "destination": "hardware/camera-mount-v7/00c_snap_post_coupon.stl",
+    "destination": "archive/camera-mount-v7/00c_snap_post_coupon.stl",
     "source_sha256": "9b2c0cdb9cc6a50eeecdc5df7c44cfaffce87ef3afb886c66b9802639857bed0",
     "published_sha256": "9b2c0cdb9cc6a50eeecdc5df7c44cfaffce87ef3afb886c66b9802639857bed0"
   },
   {
     "source": "camera-mount-v7-all-printed/00c_snap_retainer_coupon.stl",
-    "destination": "hardware/camera-mount-v7/00c_snap_retainer_coupon.stl",
+    "destination": "archive/camera-mount-v7/00c_snap_retainer_coupon.stl",
     "source_sha256": "05663412fcf5450ac8fdd88301eb24ec0eca308262a3a7dd3be8a5c58ad3c539",
     "published_sha256": "05663412fcf5450ac8fdd88301eb24ec0eca308262a3a7dd3be8a5c58ad3c539"
   },
   {
     "source": "camera-mount-v7-all-printed/01_base_clamp_screw_x1.stl",
-    "destination": "hardware/camera-mount-v7/01_base_clamp_screw_x1.stl",
+    "destination": "archive/camera-mount-v7/01_base_clamp_screw_x1.stl",
     "source_sha256": "4f67cf81b591bc26c21697a9fe6b20e452decb2e246f58d502635f27b1515b70",
     "published_sha256": "4f67cf81b591bc26c21697a9fe6b20e452decb2e246f58d502635f27b1515b70"
   },
   {
     "source": "camera-mount-v7-all-printed/02_mast_120mm_choose_one.stl",
-    "destination": "hardware/camera-mount-v7/02_mast_120mm_choose_one.stl",
+    "destination": "archive/camera-mount-v7/02_mast_120mm_choose_one.stl",
     "source_sha256": "d13a3427e74e96dfeeeb74a29d712ee8697e0c7b762491b0b98bcbc09e544202",
     "published_sha256": "d13a3427e74e96dfeeeb74a29d712ee8697e0c7b762491b0b98bcbc09e544202"
   },
   {
     "source": "camera-mount-v7-all-printed/02_mast_120mm_forward45_choose_one.stl",
-    "destination": "hardware/camera-mount-v7/02_mast_120mm_forward45_choose_one.stl",
+    "destination": "archive/camera-mount-v7/02_mast_120mm_forward45_choose_one.stl",
     "source_sha256": "2a529fa8d2af19c5c5dcfbb0344835d351ea8de401b6937f8be5c72e665daa98",
     "published_sha256": "2a529fa8d2af19c5c5dcfbb0344835d351ea8de401b6937f8be5c72e665daa98"
   },
   {
     "source": "camera-mount-v7-all-printed/02_mast_60mm_choose_one.stl",
-    "destination": "hardware/camera-mount-v7/02_mast_60mm_choose_one.stl",
+    "destination": "archive/camera-mount-v7/02_mast_60mm_choose_one.stl",
     "source_sha256": "61b7cf46247e75fca7f3d6fc15a564c4c0db6e8b6915a213ea0a5cdde68066d2",
     "published_sha256": "61b7cf46247e75fca7f3d6fc15a564c4c0db6e8b6915a213ea0a5cdde68066d2"
   },
   {
     "source": "camera-mount-v7-all-printed/02_mast_60mm_forward45_choose_one.stl",
-    "destination": "hardware/camera-mount-v7/02_mast_60mm_forward45_choose_one.stl",
+    "destination": "archive/camera-mount-v7/02_mast_60mm_forward45_choose_one.stl",
     "source_sha256": "b8f471a4292f8621e376ef50ed809571c901e20ceb47c1135874523868e43913",
     "published_sha256": "b8f471a4292f8621e376ef50ed809571c901e20ceb47c1135874523868e43913"
   },
   {
     "source": "camera-mount-v7-all-printed/02_mast_90mm_choose_one.stl",
-    "destination": "hardware/camera-mount-v7/02_mast_90mm_choose_one.stl",
+    "destination": "archive/camera-mount-v7/02_mast_90mm_choose_one.stl",
     "source_sha256": "a3bdec2b4d17b21f560957f66f41ab4c4c5ab7f022f1e4473dd84c7aeec97b2d",
     "published_sha256": "a3bdec2b4d17b21f560957f66f41ab4c4c5ab7f022f1e4473dd84c7aeec97b2d"
   },
   {
     "source": "camera-mount-v7-all-printed/02_mast_90mm_forward45_choose_one.stl",
-    "destination": "hardware/camera-mount-v7/02_mast_90mm_forward45_choose_one.stl",
+    "destination": "archive/camera-mount-v7/02_mast_90mm_forward45_choose_one.stl",
     "source_sha256": "9ef1865ade6326cc4ad5f09b4b5609b884a5685d10879f3f48f1071e2add9217",
     "published_sha256": "9ef1865ade6326cc4ad5f09b4b5609b884a5685d10879f3f48f1071e2add9217"
   },
   {
     "source": "camera-mount-v7-all-printed/03_camera25_pitch_frame_x1.stl",
-    "destination": "hardware/camera-mount-v7/03_camera25_pitch_frame_x1.stl",
+    "destination": "archive/camera-mount-v7/03_camera25_pitch_frame_x1.stl",
     "source_sha256": "a5ca64b79869544ec4eb2185e90388b15dff15fad586d7e7af038b6295a21ea9",
     "published_sha256": "a5ca64b79869544ec4eb2185e90388b15dff15fad586d7e7af038b6295a21ea9"
   },
   {
     "source": "camera-mount-v7-all-printed/04_camera_back_retainer_x1.stl",
-    "destination": "hardware/camera-mount-v7/04_camera_back_retainer_x1.stl",
+    "destination": "archive/camera-mount-v7/04_camera_back_retainer_x1.stl",
     "source_sha256": "ed932479f2ae500ec2b163411ed86fa6a4fde1a01f2a190448e85256884f4bda",
     "published_sha256": "ed932479f2ae500ec2b163411ed86fa6a4fde1a01f2a190448e85256884f4bda"
   },
   {
     "source": "camera-mount-v7-all-printed/05_pitch_thumb_screw_x1.stl",
-    "destination": "hardware/camera-mount-v7/05_pitch_thumb_screw_x1.stl",
+    "destination": "archive/camera-mount-v7/05_pitch_thumb_screw_x1.stl",
     "source_sha256": "6fc71284064c87592beb3624cbbfc74dfed63dabc913c2ee0ca5226a5e8ecb1e",
     "published_sha256": "6fc71284064c87592beb3624cbbfc74dfed63dabc913c2ee0ca5226a5e8ecb1e"
   },
   {
     "source": "camera-mount-v7-all-printed/06_pitch_thumb_nut_x1.stl",
-    "destination": "hardware/camera-mount-v7/06_pitch_thumb_nut_x1.stl",
+    "destination": "archive/camera-mount-v7/06_pitch_thumb_nut_x1.stl",
     "source_sha256": "62f5d0429b96a77185829e1fadf50576b1048097b0b80fa7426026a247e3e002",
     "published_sha256": "62f5d0429b96a77185829e1fadf50576b1048097b0b80fa7426026a247e3e002"
   },
   {
     "source": "camera-mount-v7-all-printed/07_camera_edge_shim_0p4_optional.stl",
-    "destination": "hardware/camera-mount-v7/07_camera_edge_shim_0p4_optional.stl",
+    "destination": "archive/camera-mount-v7/07_camera_edge_shim_0p4_optional.stl",
     "source_sha256": "e481b4b39d9a7feb3ff448471cf935b0816c874b9efecc74cdae5405004067eb",
     "published_sha256": "e481b4b39d9a7feb3ff448471cf935b0816c874b9efecc74cdae5405004067eb"
   },
   {
     "source": "camera-mount-v7-all-printed/README_全打印与组装.md",
-    "destination": "hardware/camera-mount-v7/README_全打印与组装.md",
+    "destination": "archive/camera-mount-v7/README_全打印与组装.md",
     "source_sha256": "e74ef51cf22d77de48a7aa14c311fcea9656c3ec0591caf7865b03201083b68a",
     "published_sha256": "e74ef51cf22d77de48a7aa14c311fcea9656c3ec0591caf7865b03201083b68a"
   },
   {
     "source": "camera-mount-v7-all-printed/assembly_preview.png",
-    "destination": "hardware/camera-mount-v7/assembly_preview.png",
+    "destination": "archive/camera-mount-v7/assembly_preview.png",
     "source_sha256": "b00b52f6c987fc864ba46076e4bfea9c1de2be0053e1372c5c364afd2ff2ed98",
     "published_sha256": "b00b52f6c987fc864ba46076e4bfea9c1de2be0053e1372c5c364afd2ff2ed98"
   },
   {
     "source": "camera-mount-v7-all-printed/build_mount.py",
-    "destination": "hardware/camera-mount-v7/build_mount.py",
+    "destination": "archive/camera-mount-v7/build_mount.py",
     "source_sha256": "61dc58e2064c0b42b4e9821ced61c6bfefddc88d8dc90b6131165c276c46d455",
     "published_sha256": "61dc58e2064c0b42b4e9821ced61c6bfefddc88d8dc90b6131165c276c46d455"
   },
   {
     "source": "camera-mount-v7-all-printed/draw_assembly.py",
-    "destination": "hardware/camera-mount-v7/draw_assembly.py",
+    "destination": "archive/camera-mount-v7/draw_assembly.py",
     "source_sha256": "b60bb98c3c6b544e248706575ca32385076117f4c937ec5457700f4ac07f9640",
     "published_sha256": "b60bb98c3c6b544e248706575ca32385076117f4c937ec5457700f4ac07f9640"
   },
   {
     "source": "camera-mount-v7-all-printed/independent_stl_check.json",
-    "destination": "hardware/camera-mount-v7/independent_stl_check.json",
+    "destination": "archive/camera-mount-v7/independent_stl_check.json",
     "source_sha256": "f7f3689f7b548af2b969f6ae075a7bc7e6b0a3e9a8ca59e46fd899e42d99a4f4",
     "published_sha256": "f7f3689f7b548af2b969f6ae075a7bc7e6b0a3e9a8ca59e46fd899e42d99a4f4"
   },
   {
     "source": "camera-mount-v7-all-printed/requirements.txt",
-    "destination": "hardware/camera-mount-v7/requirements.txt",
+    "destination": "archive/camera-mount-v7/requirements.txt",
     "source_sha256": "8fbcf48d42f9fb5e2d0ad532380a777141714a16162b28ed92125ea6fa457069",
     "published_sha256": "8fbcf48d42f9fb5e2d0ad532380a777141714a16162b28ed92125ea6fa457069"
   },
   {
     "source": "camera-mount-v7-all-printed/validation.json",
-    "destination": "hardware/camera-mount-v7/validation.json",
+    "destination": "archive/camera-mount-v7/validation.json",
     "source_sha256": "b7872422c2d84ba1b25224a009908c7fcb7696c8b0004a7a00ae4e5869ad6b96",
     "published_sha256": "b7872422c2d84ba1b25224a009908c7fcb7696c8b0004a7a00ae4e5869ad6b96"
   },
   {
     "source": "camera-mount-v7-all-printed/verify_stl.py",
-    "destination": "hardware/camera-mount-v7/verify_stl.py",
+    "destination": "archive/camera-mount-v7/verify_stl.py",
     "source_sha256": "413938a0d7b7065c5ecdda8fec13d8efe22e10778e2300398d4cdce15ce59f1d",
     "published_sha256": "413938a0d7b7065c5ecdda8fec13d8efe22e10778e2300398d4cdce15ce59f1d"
   },
   {
     "source": "metalsweep-print-v3/00_hole_coupon_x1.stl",
-    "destination": "hardware/brush-collector-v3/00_hole_coupon_x1.stl",
+    "destination": "archive/brush-collector-v3/00_hole_coupon_x1.stl",
     "source_sha256": "f15fe5777dee7481362063ea204a8f92fc4204be5435ad27b964bc6110c7bf11",
     "published_sha256": "f15fe5777dee7481362063ea204a8f92fc4204be5435ad27b964bc6110c7bf11"
   },
   {
     "source": "metalsweep-print-v3/00b_pi_pattern_coupon_x1.stl",
-    "destination": "hardware/brush-collector-v3/00b_pi_pattern_coupon_x1.stl",
+    "destination": "archive/brush-collector-v3/00b_pi_pattern_coupon_x1.stl",
     "source_sha256": "92d438465fc827cac1c999c89b0f6803bb06d94857105d3b12f58c39c27558a2",
     "published_sha256": "92d438465fc827cac1c999c89b0f6803bb06d94857105d3b12f58c39c27558a2"
   },
   {
     "source": "metalsweep-print-v3/01_base_x1.stl",
-    "destination": "hardware/brush-collector-v3/01_base_x1.stl",
+    "destination": "archive/brush-collector-v3/01_base_x1.stl",
     "source_sha256": "264ffaee947e4553581423242159afc7391bbcc0fa4b237b39b47167f09ecc01",
     "published_sha256": "264ffaee947e4553581423242159afc7391bbcc0fa4b237b39b47167f09ecc01"
   },
   {
     "source": "metalsweep-print-v3/02_pi_deck_x1.stl",
-    "destination": "hardware/brush-collector-v3/02_pi_deck_x1.stl",
+    "destination": "archive/brush-collector-v3/02_pi_deck_x1.stl",
     "source_sha256": "e79011b20c38cad3998059177217af57912402ce2d0955bb2a1071b70c44959c",
     "published_sha256": "e79011b20c38cad3998059177217af57912402ce2d0955bb2a1071b70c44959c"
   },
   {
     "source": "metalsweep-print-v3/03_column_45mm_x4.stl",
-    "destination": "hardware/brush-collector-v3/03_column_45mm_x4.stl",
+    "destination": "archive/brush-collector-v3/03_column_45mm_x4.stl",
     "source_sha256": "a5e17ab1f5b4b8be4c991b743e4ddb05eccc36f53dc41f30d89b21964a87c9e1",
     "published_sha256": "a5e17ab1f5b4b8be4c991b743e4ddb05eccc36f53dc41f30d89b21964a87c9e1"
   },
   {
     "source": "metalsweep-print-v3/04_pi_spacer_6mm_x4.stl",
-    "destination": "hardware/brush-collector-v3/04_pi_spacer_6mm_x4.stl",
+    "destination": "archive/brush-collector-v3/04_pi_spacer_6mm_x4.stl",
     "source_sha256": "39b0c4cb685ba6592e958cb41869fbf0b5bdc610258edbc84256781da3900c4f",
     "published_sha256": "39b0c4cb685ba6592e958cb41869fbf0b5bdc610258edbc84256781da3900c4f"
   },
   {
     "source": "metalsweep-print-v3/05_motor_strap_cradle_x2.stl",
-    "destination": "hardware/brush-collector-v3/05_motor_strap_cradle_x2.stl",
+    "destination": "archive/brush-collector-v3/05_motor_strap_cradle_x2.stl",
     "source_sha256": "db56c98e6a1dfbf1b99af81d10d845a2ca2da686b3609bd1f4a8f55d936c1e30",
     "published_sha256": "db56c98e6a1dfbf1b99af81d10d845a2ca2da686b3609bd1f4a8f55d936c1e30"
   },
   {
     "source": "metalsweep-print-v3/06_brush_ramp_trial_x1.stl",
-    "destination": "hardware/brush-collector-v3/06_brush_ramp_trial_x1.stl",
+    "destination": "archive/brush-collector-v3/06_brush_ramp_trial_x1.stl",
     "source_sha256": "7ec6b219a248e52d4bbd35788fc108bf72bcdb277c7d61eee8fbfe3c25c98598",
     "published_sha256": "7ec6b219a248e52d4bbd35788fc108bf72bcdb277c7d61eee8fbfe3c25c98598"
   },
   {
     "source": "metalsweep-print-v3/07_brush_support_trial_x2.stl",
-    "destination": "hardware/brush-collector-v3/07_brush_support_trial_x2.stl",
+    "destination": "archive/brush-collector-v3/07_brush_support_trial_x2.stl",
     "source_sha256": "99dd99591dc819a48fca8718202f87cbd23a4e6fcd8741003cf7bbcae6826ef9",
     "published_sha256": "99dd99591dc819a48fca8718202f87cbd23a4e6fcd8741003cf7bbcae6826ef9"
   },
   {
     "source": "metalsweep-print-v3/08_brush_collection_tray_x1.stl",
-    "destination": "hardware/brush-collector-v3/08_brush_collection_tray_x1.stl",
+    "destination": "archive/brush-collector-v3/08_brush_collection_tray_x1.stl",
     "source_sha256": "c7e913813fa6216cca8eabf02c30e28d3e4d0a242c7da7144da18d5e1ca9b03e",
     "published_sha256": "c7e913813fa6216cca8eabf02c30e28d3e4d0a242c7da7144da18d5e1ca9b03e"
   },
   {
     "source": "metalsweep-print-v3/09_sensor_shelf_x4.stl",
-    "destination": "hardware/brush-collector-v3/09_sensor_shelf_x4.stl",
+    "destination": "archive/brush-collector-v3/09_sensor_shelf_x4.stl",
     "source_sha256": "fa7d83d8cb7aa5110493b4ebd4de42c89a57261fe26e31c0707dba7ba3d1bd00",
     "published_sha256": "fa7d83d8cb7aa5110493b4ebd4de42c89a57261fe26e31c0707dba7ba3d1bd00"
   },
   {
     "source": "metalsweep-print-v3/10_camera_mast_x1.stl",
-    "destination": "hardware/brush-collector-v3/10_camera_mast_x1.stl",
+    "destination": "archive/brush-collector-v3/10_camera_mast_x1.stl",
     "source_sha256": "921a26c3f4b742f6d68ece9434e60bc6fed8415583735d11355681cdba91e4b7",
     "published_sha256": "921a26c3f4b742f6d68ece9434e60bc6fed8415583735d11355681cdba91e4b7"
   },
   {
     "source": "metalsweep-print-v3/11_camera_angle_foot_x2.stl",
-    "destination": "hardware/brush-collector-v3/11_camera_angle_foot_x2.stl",
+    "destination": "archive/brush-collector-v3/11_camera_angle_foot_x2.stl",
     "source_sha256": "a7f7fee46e841d499d0e5f35762cb6ddbbdcdd6c1006cca1f8f73353a07ae368",
     "published_sha256": "a7f7fee46e841d499d0e5f35762cb6ddbbdcdd6c1006cca1f8f73353a07ae368"
   },
   {
     "source": "metalsweep-print-v3/12_camera_carrier_trial_x1.stl",
-    "destination": "hardware/brush-collector-v3/12_camera_carrier_trial_x1.stl",
+    "destination": "archive/brush-collector-v3/12_camera_carrier_trial_x1.stl",
     "source_sha256": "2cc128b947d5002c52be83a23766f53977ac982615332216c24b03ca4f5adf18",
     "published_sha256": "2cc128b947d5002c52be83a23766f53977ac982615332216c24b03ca4f5adf18"
   },
   {
     "source": "metalsweep-print-v3/README_最终调整与打印.md",
-    "destination": "hardware/brush-collector-v3/README_最终调整与打印.md",
+    "destination": "archive/brush-collector-v3/README_最终调整与打印.md",
     "source_sha256": "6a067b0fbb224edc94ed5d1ace14f2116ec392a8588ea5dc83ad4a4db9a75fab",
     "published_sha256": "6a067b0fbb224edc94ed5d1ace14f2116ec392a8588ea5dc83ad4a4db9a75fab"
   },
   {
     "source": "metalsweep-print-v3/V3_刷子版布局与组装.pdf",
-    "destination": "hardware/brush-collector-v3/V3_刷子版布局与组装.pdf",
+    "destination": "archive/brush-collector-v3/V3_刷子版布局与组装.pdf",
     "source_sha256": "d126103ca71a5ca2a82641ac26cda4887d6563120a77a5b2745bf195342ac4c0",
     "published_sha256": "d126103ca71a5ca2a82641ac26cda4887d6563120a77a5b2745bf195342ac4c0"
   },
   {
     "source": "metalsweep-print-v3/assembly_page_1.png",
-    "destination": "hardware/brush-collector-v3/assembly_page_1.png",
+    "destination": "archive/brush-collector-v3/assembly_page_1.png",
     "source_sha256": "e59d45ce79f0858256c6eccfc14fd56b42be54466d963acd7af4271eee936002",
     "published_sha256": "e59d45ce79f0858256c6eccfc14fd56b42be54466d963acd7af4271eee936002"
   },
   {
     "source": "metalsweep-print-v3/assembly_page_2.png",
-    "destination": "hardware/brush-collector-v3/assembly_page_2.png",
+    "destination": "archive/brush-collector-v3/assembly_page_2.png",
     "source_sha256": "c1c2dd7b8c6d75f977f83af2085602682d332dffe65103314922c0d0868f9073",
     "published_sha256": "c1c2dd7b8c6d75f977f83af2085602682d332dffe65103314922c0d0868f9073"
   },
   {
     "source": "metalsweep-print-v3/build_models.py",
-    "destination": "hardware/brush-collector-v3/build_models.py",
+    "destination": "archive/brush-collector-v3/build_models.py",
     "source_sha256": "c4f8f50664cf118f5661ec0f58e15017b3321330c18f025ebefb4c3eaf57f9d0",
     "published_sha256": "c4f8f50664cf118f5661ec0f58e15017b3321330c18f025ebefb4c3eaf57f9d0"
   },
   {
     "source": "metalsweep-print-v3/independent_stl_check.json",
-    "destination": "hardware/brush-collector-v3/independent_stl_check.json",
+    "destination": "archive/brush-collector-v3/independent_stl_check.json",
     "source_sha256": "7a53d817d8069a459771c83e49f6bb07576a230e6883e2c26a5e49d16eccace6",
     "published_sha256": "7a53d817d8069a459771c83e49f6bb07576a230e6883e2c26a5e49d16eccace6"
   },
   {
     "source": "metalsweep-print-v3/make_layout.py",
-    "destination": "hardware/brush-collector-v3/make_layout.py",
+    "destination": "archive/brush-collector-v3/make_layout.py",
     "source_sha256": "c6e05fbc5f5fc4c580be5dc868a226d7c13d7d5595760d8c39912289914755ce",
     "published_sha256": "c6e05fbc5f5fc4c580be5dc868a226d7c13d7d5595760d8c39912289914755ce"
   },
   {
     "source": "metalsweep-print-v3/mesh_validation.json",
-    "destination": "hardware/brush-collector-v3/mesh_validation.json",
+    "destination": "archive/brush-collector-v3/mesh_validation.json",
     "source_sha256": "ce0d9a56882f12ce25fefc1253805e1fce8203b3e6c7f237bba96fb99529610f",
     "published_sha256": "ce0d9a56882f12ce25fefc1253805e1fce8203b3e6c7f237bba96fb99529610f"
   },
   {
     "source": "metalsweep-print-v3/parts_preview.png",
-    "destination": "hardware/brush-collector-v3/parts_preview.png",
+    "destination": "archive/brush-collector-v3/parts_preview.png",
     "source_sha256": "685297a20abcb6dac4e24ec91cdd36c348401385a95c1567810fcbeb06fd6021",
     "published_sha256": "685297a20abcb6dac4e24ec91cdd36c348401385a95c1567810fcbeb06fd6021"
   },
   {
     "source": "metalsweep-print-v3/verify_stl.py",
-    "destination": "hardware/brush-collector-v3/verify_stl.py",
+    "destination": "archive/brush-collector-v3/verify_stl.py",
     "source_sha256": "413938a0d7b7065c5ecdda8fec13d8efe22e10778e2300398d4cdce15ce59f1d",
     "published_sha256": "413938a0d7b7065c5ecdda8fec13d8efe22e10778e2300398d4cdce15ce59f1d"
   },
