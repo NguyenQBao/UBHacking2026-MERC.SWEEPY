@@ -10,7 +10,7 @@
 | 排线口 | 宽18mm | 从托槽底部穿出，经颈部背面引出 |
 | 俯角 | 30° | 镜头向前下方；改TILT_DEG |
 | 套筒 | 内孔10.4mm，深22mm | 孔中心距柱顶5mm、15mm，与柱子孔对齐 |
-| 外形 | 约30.4×25.4×57.6mm | 套筒开口朝下平放打印，无需支撑 |
+| 外形 | 约30.4×25.4×57.6mm | 推荐侧躺打印（见下），直立打印贴床面积小、头重易晃 |
 
 重新生成：
 
@@ -23,7 +23,7 @@ python generate.py
 
 ## 多厚度试打（PrusaSlicer）
 
-[camera-slot-mount-variants.3mf](camera-slot-mount-variants.3mf)：一盘4件，插槽厚1.2 / 1.6 / 2.0 / 2.4mm（单件STL在[variants](variants)），每件已设置“自动支撑、仅从热床生成”。3MF只含模型和逐件设置，不含打印机配置，打开后沿用PrusaSlicer当前所选的打印机/耗材/打印预设（按Prusa CORE One 250×220热床居中排列）。
+[camera-slot-mount-variants.3mf](camera-slot-mount-variants.3mf)：一盘4件，插槽厚1.2 / 1.6 / 2.0 / 2.4mm（单件STL在[variants](variants)），每件**侧躺**（托槽侧壁贴床，高30.4mm，贴床面积约为直立的2.4倍，层纹顺着颈部方向更结实），已设置“自动支撑、仅从热床生成”（只托起悬空的套筒），4件沿Y排成一列、间距12mm，互不重叠。3MF只含模型和逐件设置，不含打印机配置，打开后沿用PrusaSlicer当前所选的打印机/耗材/打印预设（按Prusa CORE One 250×220热床居中排列）。
 
 ```bash
 python generate.py --slot 1.2 --out variants/camera-slot-mount-slot1.2mm.stl   # 其余厚度同理
