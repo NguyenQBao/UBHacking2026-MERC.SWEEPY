@@ -140,7 +140,7 @@ class Tests(unittest.TestCase):
         try:
             c = Controller(self.cfg, m, self.clock)
             c.manual('forward')
-            self.assertEqual(set(opened), {17, 27, 18, 22, 23, 19})
+            self.assertEqual(set(opened), {17, 27, 18, 22, 23, 13})
             with self.assertRaises(ValueError): c.manual('brush')
             with self.assertRaises(ValueError): c.start(True)
             self.assertEqual(m.values, (0, 0, 0))
@@ -159,7 +159,7 @@ class Tests(unittest.TestCase):
         try:
             m.pulse(Action(.2, .2, .4, .1))
             self.assertTrue(made[17].value); self.assertFalse(made[22].value)
-            self.assertTrue(made[23].value); self.assertEqual(made[13].value, .4)
+            self.assertTrue(made[23].value); self.assertEqual(made[19].value, .4)
             m.stop()
             self.assertTrue(all(made[p].value == 0 for p in (18, 19, 13)))
         finally: m.close()
@@ -175,7 +175,7 @@ class Tests(unittest.TestCase):
             opened.append((pin, pwm, active_high)); return Pin()
         m = Motors(self.cfg, hardware=True, background=False, factory=factory)
         try:
-            self.assertIn((13, False, False), opened)
+            self.assertIn((19, False, False), opened)
             self.assertFalse(any(p[0] in (24, 25) for p in opened))
             m.pulse(Action(0, 0, .25, .1))
             self.assertIs(m.relay.value, True)

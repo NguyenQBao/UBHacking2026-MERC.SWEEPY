@@ -9,8 +9,8 @@
   "supervised_clear_floor": false,
   "motors": {
     "left": {"in1": 17, "in2": 27, "enable": 18, "invert": false},
-    "right": {"in1": 22, "in2": 23, "enable": 19, "invert": false},
-    "brush": {"in1": 24, "in2": 25, "enable": 13, "invert": false}
+    "right": {"in1": 22, "in2": 23, "enable": 13, "invert": false},
+    "brush": {"in1": 24, "in2": 25, "enable": 19, "invert": false}
   },
   "wheel_speed": 0.22,
   "turn_speed": 0.22,

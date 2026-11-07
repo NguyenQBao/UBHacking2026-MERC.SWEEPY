@@ -15,7 +15,7 @@ def img(n,x,y,w,h):c.drawImage(str(P/n),x,y,w,h,preserveAspectRatio=True,anchor=
 def line(a,b,col='#78929e',width=1):c.setStrokeColor(HexColor(col));c.setLineWidth(width);c.line(*a,*b)
 def link(x,y,label,url):
  t(x,y,label,10,'#286c95');c.linkURL(url,(x,y-2,x+len(label)*10,y+12),relative=0)
-rows=[('2','5V 电源','+5V（见红色条件）'),('6','GND','GND'),('12','GPIO18','ENA'),('11','GPIO17','IN1'),('13','GPIO27','IN2'),('15','GPIO22','IN3'),('16','GPIO23','IN4'),('35','GPIO19','ENB')]
+rows=[('2','5V 电源','+5V（见红色条件）'),('6','GND','GND'),('12','GPIO18','ENA'),('11','GPIO17','IN1'),('13','GPIO27','IN2'),('15','GPIO22','IN3'),('16','GPIO23','IN4'),('33','GPIO13','ENB')]
 t(28,810,'树莓派 4B + L298N：两端均使用官方原图',26)
 t(28,780,'左：Raspberry Pi 官方4B照片；右：SunFounder官方引脚照片。接线表是本项目的连接方案。',14)
 # Preserve originals without repainting electronic parts.
@@ -56,7 +56,7 @@ t(28,781,'原图中的板形是通用示意；接线按圈内物理编号1–40�
 img('RaspberryPi_官方40针引脚图.png',25,220,1070,540)
 box(25,96,1070,100)
 t(42,172,'本项目使用的物理脚：2、6、11、12、13、15、16、35。',18)
-t(42,142,'软件写GPIO18，杜邦线实际插物理12脚；软件写GPIO19，杜邦线实际插物理35脚。',15)
+t(42,142,'软件写GPIO18，杜邦线实际插物理12脚；软件写GPIO13，杜邦线实际插物理33脚。',15)
 t(42,115,'官方图内 3V3 power 是3.3V电源，不是本方案的5V逻辑供电。2脚5V电源也不是GPIO2。',14,'#a44022')
 link(28,62,'来源：Raspberry Pi官方硬件文档 / GPIO','https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#gpio')
 t(28,26,'原始官方引脚图保留完整；第2/2页。断电接线，查清跳帽和电机电压后再上电。',11)
