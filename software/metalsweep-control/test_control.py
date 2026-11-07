@@ -162,9 +162,9 @@ class Tests(unittest.TestCase):
             # left = GPIO22/23 forward; right = GPIO17/27 inverted
             self.assertTrue(made[22].value); self.assertFalse(made[23].value)
             self.assertFalse(made[17].value); self.assertTrue(made[27].value)
-            self.assertEqual(made[19].value, .4)
+            self.assertEqual(made[21].value, .4)
             m.stop()
-            self.assertTrue(all(made[p].value == 0 for p in (18, 19, 13)))
+            self.assertTrue(all(made[p].value == 0 for p in (18, 21, 13)))
         finally: m.close()
         self.assertTrue(all(x.closed for x in made.values()))
 
@@ -178,7 +178,7 @@ class Tests(unittest.TestCase):
             opened.append((pin, pwm, active_high)); return Pin()
         m = Motors(self.cfg, hardware=True, background=False, factory=factory)
         try:
-            self.assertIn((19, False, False), opened)
+            self.assertIn((21, False, False), opened)
             self.assertFalse(any(p[0] in (24, 25) for p in opened))
             m.pulse(Action(0, 0, .25, .1))
             self.assertIs(m.relay.value, True)
