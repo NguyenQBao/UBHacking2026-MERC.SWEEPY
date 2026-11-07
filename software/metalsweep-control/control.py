@@ -263,6 +263,32 @@ class Controller:
             self.stop()
             self._act(actions[kind])
 
+    def brush_test(self, seconds):
+        """Run only the brush for 0.3..3 s (split into <=1 s leases); wheels stay off."""
+        if isinstance(seconds, bool) or not isinstance(seconds, (int, float)) or not .3 <= seconds <= 3:
+            raise ValueError('Brush test seconds must be 0.3..3')
+        b, n = self.cfg['brush_speed'], math.ceil(seconds)
+        actions = [Action(0, 0, b, seconds/n, 'BRUSH_TEST') for _ in range(n)]
+        with self.lock:
+            self.stop()
+            self.motors.run_sequence(actions)
+            self.ready_at = self.clock() + seconds + self.cfg['settle_seconds']
+            self.status = 'BRUSH_TEST'
+
+    TUNABLE = ('wheel_speed', 'turn_speed', 'move_seconds', 'turn_seconds')
+
+    def set_setting(self, key, value):
+        """Change one tunable value at runtime; same bounds as config validation."""
+        if key not in self.TUNABLE:
+            raise ValueError('Setting not adjustable')
+        with self.lock:
+            self.stop()
+            validate(dict(self.cfg, **{key: value}))
+            self.cfg[key] = value
+
+    def settings(self):
+        return {k: self.cfg[k] for k in self.TUNABLE}
+
     def _act(self, action):
         self.motors.pulse(action)
         self.ready_at = self.clock() + action.seconds + self.cfg['settle_seconds']

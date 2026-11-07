@@ -50,6 +50,7 @@ class HTTPTests(unittest.TestCase):
                 return raw
             try:
                 deadline = time.monotonic()+8
+                saved = None
                 state = {}
                 while time.monotonic() < deadline:
                     try:
@@ -65,6 +66,14 @@ class HTTPTests(unittest.TestCase):
                 raw = call('/frame.jpg')
                 decoded = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_COLOR)
                 self.assertEqual(decoded.shape, (480, 640, 3))
+                conn = http.client.HTTPConnection('127.0.0.1', port, timeout=1)
+                headers = {'Origin': f'http://127.0.0.1:{port}', 'X-Control-Token': token, 'Content-Type': 'application/json'}
+                for body in ({'command': 'set', 'key': 'turn_seconds', 'value': .12}, {'command': 'save'}):
+                    conn.request('POST', '/command', json.dumps(body), headers)
+                    r = conn.getresponse(); self.assertEqual(r.status, 200, r.read())
+                conn.close()
+                saved = json.loads((d/'config.json').read_text())
+                self.assertEqual(saved['turn_seconds'], .12); self.assertEqual(saved['motors'], cfg['motors'])
                 call('/command', 'auto', token)
                 statuses = set()
                 while time.monotonic() < deadline:
@@ -115,6 +124,22 @@ class HTTPTests(unittest.TestCase):
             self.assertEqual(request('POST', '/command', {'command': 'stop'})[0], 200)
             state = json.loads(request('GET', '/state')[1])
             self.assertTrue(state['simulated']); self.assertEqual(state['motors'], [0, 0, 0])
+            # Sliders: in-bounds change applies, out-of-bounds or unknown key is refused.
+            self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'wheel_speed', 'value': .3})[0], 200)
+            self.assertEqual(json.loads(request('GET', '/state')[1])['settings']['wheel_speed'], .3)
+            self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'wheel_speed', 'value': .9})[0], 400)
+            self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'brush_speed', 'value': .3})[0], 400)
+            self.assertEqual(cfg['wheel_speed'], .3)
+            request('POST', '/command', {'command': 'forward'})
+            self.assertEqual(motors.values[:2], (.3, .3))
+            # Brush test: brush only, bounded duration, multi-lease sequence.
+            self.assertEqual(request('POST', '/command', {'command': 'brush_test', 'seconds': 5})[0], 400)
+            self.assertEqual(request('POST', '/command', {'command': 'brush_test', 'seconds': 2})[0], 200)
+            self.assertEqual(motors.values[:2], (0, 0)); self.assertGreater(motors.values[2], 0)
+            self.assertEqual(len(motors.sequence), 1)
+            request('POST', '/command', {'command': 'stop'})
+            self.assertEqual(motors.values, (0, 0, 0))
+            self.assertEqual(request('POST', '/command', {'command': 'save'})[0], 400)  # no config path
         finally:
             server.shutdown(); server.server_close(); thread.join(2); motors.close()
 

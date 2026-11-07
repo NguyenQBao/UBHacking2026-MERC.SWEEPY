@@ -16,7 +16,8 @@ HERE = Path(__file__).resolve().parent
 
 
 class App:
-    def __init__(self, cfg, motors, vision, simulated):
+    def __init__(self, cfg, motors, vision, simulated, config_path=None):
+        self.config_path = config_path
         self.controller = Controller(cfg, motors)
         self.cfg, self.vision = cfg, vision
         self.lock = threading.Lock()
@@ -28,6 +29,18 @@ class App:
         self.token = secrets.token_urlsafe(24)
         self.session_seen = time.monotonic()
         self.frame_id = 0
+
+    def save_config(self):
+        """Write current runtime settings back to the config file (atomic replace)."""
+        if not self.config_path:
+            raise ValueError('No config file to save')
+        path = Path(self.config_path)
+        data = json.loads(path.read_text())
+        data.update(self.controller.settings())
+        validate(data)
+        tmp = path.with_suffix('.tmp')
+        tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False)+'\n')
+        os.replace(tmp, path)
 
     def run_camera(self, image=None):
         camera = None
@@ -133,7 +146,8 @@ class Handler(BaseHTTPRequestHandler):
                 if self.path == '/state':
                     state = dict(app.state, status=app.controller.status,
                                  motors=list(app.controller.motors.values), auto=app.controller.auto,
-                                 motor_phase=app.controller.motors.label)
+                                 motor_phase=app.controller.motors.label,
+                                 settings=app.controller.settings())
                     self.reply(state)
                 else:
                     raw = app.jpeg if self.path == '/frame.jpg' else getattr(app, 'raw', b'')
@@ -153,10 +167,17 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get('Content-Length', '0'))
             if not 0 < length <= 1024:
                 raise ValueError('Invalid body')
-            command = json.loads(self.rfile.read(length))['command']
+            body = json.loads(self.rfile.read(length))
+            command = body['command']
             c = app.controller
             if command == 'stop':
                 c.stop('OPERATOR_STOP')
+            elif command == 'set':
+                c.set_setting(body['key'], body['value'])
+            elif command == 'brush_test':
+                c.brush_test(body['seconds'])
+            elif command == 'save':
+                app.save_config()
             elif command == 'heartbeat':
                 c.heartbeat()
             elif command == 'auto':
@@ -201,7 +222,7 @@ def main():
         os.environ.setdefault('YOLO_CONFIG_DIR', str(HERE/'runtime'/'ultralytics'))
         vision = Vision(cfg, args.model, hsv, ground)
         motors = Motors(cfg, hardware=args.hardware, brush_enabled=not args.wheels_only)
-        app = App(cfg, motors, vision, not args.hardware)
+        app = App(cfg, motors, vision, not args.hardware, args.config)
         server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
         server.daemon_threads = True
         server.app = app

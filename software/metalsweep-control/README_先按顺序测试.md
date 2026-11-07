@@ -113,6 +113,8 @@ Mac 浏览器也打开 **http://127.0.0.1:8091/**；隧道窗口保持运行。�
 python3 run.py --hsv 0,220,220 --hardware --wheels-only
 ```
 
+网页“Wheels”区有4个滑块：Drive speed、Drive step time、Turn speed、Turn step time（范围同config校验）。拖动后立即生效，重启后失效；点“Save as default”才写回config.json。改了之后每步距离/角度要重测。
+
 架空轮子，逐次点“Forward step”“Turn left step”“Turn right step”“STOP ALL”。默认 PWM22%、前进0.10秒、转向0.07秒，是保守起调值，不能保证每台电机都能起转。若起不来不要让其长时间通电堵住；先检查电源/接线，再小幅调整速度参数。`invert` 只反转该组实际电气方向；摄像头图像不能镜像，否则左右关系改变。
 
 地面上量一个前进脉冲的实际位移 d、一次转向的角度；记录负载和电量。例：0.10秒实走10mm，则该工况约100mm/s。程序 PWM 是占空比，**不是转速/车速**。每次动作量尽量小，最后一段约5–15mm更好；以实测调整 `move_seconds`、`turn_seconds`、`sweep_seconds`。
@@ -148,7 +150,7 @@ python3 calibrate.py --image calibration.jpg --points points.example.json --out 
 python3 run.py --hsv 0,220,220 --hardware
 ```
 
-“Brush pulse”通电0.30秒，实际转动时间含板上电延迟/断电惯性。**刷毛与地面接触处的运动方向应朝向集尘盒入口/斜坡**。CCM6N模式方向由原开关设置，程序的 brush.invert 不改变方向；只有替代H桥模式才通过 invert 反转。确认没有干涉后再接触地面，刷毛轻触即可。
+网页“Brush”区：“Brush pulse (0.3 s)”通电0.30秒；“Run brush test”可选0.5/1/2/3秒连续通电，只开刷子不动轮子，状态徽章显示ON/OFF。“Brush pulse”通电0.30秒，实际转动时间含板上电延迟/断电惯性。**刷毛与地面接触处的运动方向应朝向集尘盒入口/斜坡**。CCM6N模式方向由原开关设置，程序的 brush.invert 不改变方向；只有替代H桥模式才通过 invert 反转。确认没有干涉后再接触地面，刷毛轻触即可。
 
 铭牌标12V、300rpm。V8橙色主轴直径约30mm，300rpm 的理论圆周速度约0.47m/s；加装刷毛/叶片后外径变大、速度随之增加，过快可能将轻片弹飞；实际转速取决于负载和电源。**CCM6N模式用原旋钮调速，config 的 brush_speed 不调实际速度，任何正数仅代表继电器ON**。备选H桥的初始25% PWM也不等于150rpm。低速无法启动时要查驱动与供电，最终以碎片进盒、不过度弹跳、不堵转为准。
 
