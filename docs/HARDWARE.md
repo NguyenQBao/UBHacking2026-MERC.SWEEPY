@@ -31,6 +31,7 @@
 | 摄像头 | Hiwonder，板号TY-9251-OV5-V1.0，背面另有4针白色插座 | 用户确认经排线（CSI）连接Pi，与现有Picamera2代码一致 | 传感器具体型号（按OV5647处理）；4针插座用途（未使用前不接）；PCB外形尺寸与安装孔距 |
 | 超声波测距 | HC-SR04，背面标Trig/Rx/SCL、Echo/Tx/SDA、R4/R5可选IIC/UART/1-WIRE（2020多模式版） | 前方障碍/距离 | 3.3V下能否工作；5V供电时Echo为5V，接Pi须分压（如1kΩ/2kΩ） |
 | 红外避障 | MH-Sensor-Series（Flying-Fish），VCC/GND/OUT，比较器+电位器 | 向下安装可做桌沿检测，向前可做近距障碍 | 用3.3V供电以免OUT为5V；检测距离由电位器调，深色/反光表面会误判 |
+| 蜂鸣器 | GPIO12（物理32脚）控制，每次画面中新出现debris时响一声（默认80ms，1秒内不重复） | config.json的`buzzer`段：`passive=false`为有源蜂鸣器（通电即响），无源蜂鸣器改true（2kHz PWM） | 裸蜂鸣器电流可能超过GPIO能力，建议用带三极管的蜂鸣器模块；模块低电平触发时把`active_high`改false |
 | 刷子继电器 | 红色1路继电器模块，JQC-3FF-S-Z（线圈12VDC；触点10A 30VDC），光耦输入，high/low level trigger跳线，DC+/DC−/IN与COM/NO/NC两组端子 | 已确认用于GPIO21开关滚刷电源 | 跳线必须插H（高电平触发）；线圈12V由电池11.1V直供（满电12.6V可接受） |
 | 步进驱动板 | ULN2003板，IN1–IN4，A–D指示灯，5–12V，5针插座（常配28BYJ-48） | 只能单向低边开关，不能正反转驱动直流电机 | 计划用途；如用于继电器/开关，确认电流与续流 |
 

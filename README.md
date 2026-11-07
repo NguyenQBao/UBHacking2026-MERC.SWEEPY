@@ -22,6 +22,7 @@
 | [software/metalsweep-control](software/metalsweep-control) | CSI图像、目标检测、地面映射、左右轮与刷子有时限控制 | 默认模拟，核验后才启用GPIO |
 | [software/debris-detector-pi4](software/debris-detector-pi4) | 颜色/静态背景检测网页、原图接口 | 独立诊断工具；背景法要求车/光照固定 |
 | [hardware/cad-v8](hardware/cad-v8) | 当前模型：摄像头支架（竖杆/横杆/前部件）、滚刷主轴、清扫轮、斜坡、收集盒，共7个STL | 网格已检查，尚未打印试装 |
+| [hardware/camera-slot-mount](hardware/camera-slot-mount) | 摄像头插槽支架：电路板从上插入，套在主柱子顶端，30°俯角；参数化生成脚本 | 板尺寸按25×24mm默认，待实物测量 |
 | [hardware/wiring](hardware/wiring) | Pi4B/L298N官方原图接线图与排版源码 | 电压/跳帽按实物核对 |
 | [docs/camera-orientation](docs/camera-orientation) | 摄像头朝向概念图 | 概念参考 |
 | [archive](archive) | 较早版本的底盘、支架（含V7支架、V3刷子件）、装配图与算法演示 | 历史参考，不混装不同版本零件 |

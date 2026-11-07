@@ -228,4 +228,25 @@ class Tests(unittest.TestCase):
             self.assertAlmostEqual(targets[0].center[0], 310+shift, delta=1)
 
 
+class BuzzerTests(unittest.TestCase):
+    def test_beeps_once_per_new_detection_and_rate_limited(self):
+        import json as _j
+        from pathlib import Path as _P
+        from control import Buzzer, validate as _v
+        cfg = _v(_j.loads(_P(__file__).with_name('config.json').read_text()))
+        t = [0.0]
+        class Dev:
+            value = 0
+            def off(self): self.value = 0
+            def close(self): pass
+        dev = Dev()
+        b = Buzzer(cfg, hardware=True, clock=lambda: t[0], factory=lambda: dev)
+        b.update(True); self.assertEqual(b.beeps, 1); self.assertEqual(dev.value, 1)
+        t[0] = 2; b.update(True); self.assertEqual(b.beeps, 1)   # still the same detection
+        b.update(False); t[0] = 2.3; b.update(True); self.assertEqual(b.beeps, 2)
+        b.update(False); t[0] = 2.5; b.update(True); self.assertEqual(b.beeps, 2)  # inside cooldown
+        cfg['buzzer']['pin'] = 17
+        with self.assertRaises(ValueError): _v(cfg)
+
+
 if __name__ == '__main__': unittest.main()

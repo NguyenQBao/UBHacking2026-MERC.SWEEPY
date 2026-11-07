@@ -9,15 +9,16 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import cv2
-from control import Controller, Motors, validate
+from control import Buzzer, Controller, Motors, validate
 from vision import Ground, Vision
 
 HERE = Path(__file__).resolve().parent
 
 
 class App:
-    def __init__(self, cfg, motors, vision, simulated, config_path=None):
+    def __init__(self, cfg, motors, vision, simulated, config_path=None, buzzer=None):
         self.config_path = config_path
+        self.buzzer = buzzer or Buzzer(cfg)
         self.controller = Controller(cfg, motors)
         self.cfg, self.vision = cfg, vision
         self.lock = threading.Lock()
@@ -72,6 +73,10 @@ class App:
                 if self.cfg['rotate180']:
                     frame = cv2.rotate(frame, cv2.ROTATE_180)
                 targets = self.vision.detect(frame)
+                try:
+                    self.buzzer.update(bool(targets))
+                except Exception as e:  # a buzzer fault must never stop the camera/motors loop
+                    print(f'Buzzer error: {e}', flush=True)
                 self.frame_id += 1
                 action = self.controller.tick(targets, captured_at, self.frame_id)
                 if action:
@@ -97,7 +102,7 @@ class App:
                 with self.lock:
                     self.jpeg, self.raw = jpeg.tobytes(), raw.tobytes()
                     self.state.update(frame_id=self.frame_id, status=self.controller.status,
-                                      auto=self.controller.auto, motors=list(self.controller.motors.values),
+                                      auto=self.controller.auto, beeps=self.buzzer.beeps, motors=list(self.controller.motors.values),
                                       processing_ms=round((time.monotonic()-captured_at)*1000),
                                       targets=[{'box': t.box, 'score': t.confidence, 'xy_mm': t.ground,
                                                 'image_direction': ('LEFT' if t.center[0] < 300 else 'RIGHT' if t.center[0] > 340 else 'CENTER')}
@@ -209,7 +214,7 @@ def main():
     args = p.parse_args()
     if not 1024 <= args.port <= 65535 or (args.hardware and args.image):
         p.error('Invalid port or --hardware with offline image')
-    motors = server = app = None
+    motors = server = app = buzzer = None
     old_handlers = {}
     try:
         cfg = validate(json.loads(Path(args.config).read_text()))
@@ -222,7 +227,8 @@ def main():
         os.environ.setdefault('YOLO_CONFIG_DIR', str(HERE/'runtime'/'ultralytics'))
         vision = Vision(cfg, args.model, hsv, ground)
         motors = Motors(cfg, hardware=args.hardware, brush_enabled=not args.wheels_only)
-        app = App(cfg, motors, vision, not args.hardware, args.config)
+        buzzer = Buzzer(cfg, hardware=args.hardware)
+        app = App(cfg, motors, vision, not args.hardware, args.config, buzzer)
         server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
         server.daemon_threads = True
         server.app = app
@@ -245,6 +251,8 @@ def main():
             server.server_close()
         if motors:
             motors.close()
+        if buzzer:
+            buzzer.close()
         for sig, old in old_handlers.items():
             signal.signal(sig, old)
 

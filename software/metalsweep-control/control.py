@@ -67,9 +67,60 @@ def validate(cfg):
             if type(p) is not int or not 2 <= p <= 27:
                 raise ValueError('Use BCM GPIO 2..27')
             pins.append(p)
+    buzzer = cfg.setdefault('buzzer', {'pin': 12, 'active_high': True, 'passive': False,
+                                       'beep_seconds': .08, 'cooldown_seconds': 1.0})
+    if type(buzzer.get('pin')) is not int or not 2 <= buzzer['pin'] <= 27 or buzzer['pin'] in pins:
+        raise ValueError('buzzer pin must be a free BCM GPIO 2..27')
+    for key in ('active_high', 'passive'):
+        if type(buzzer.get(key)) is not bool:
+            raise ValueError(f'buzzer {key} must be boolean')
+    for key, (low, high) in (('beep_seconds', (.02, .5)), ('cooldown_seconds', (.2, 10))):
+        v = buzzer.get(key)
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or not low <= v <= high:
+            raise ValueError(f'Invalid buzzer {key}: must be {low}..{high}')
     if len(set(pins)) != 9:
         raise ValueError('GPIO pins must be distinct')
     return cfg
+
+
+class Buzzer:
+    """One short beep when debris first appears; GPIO only with hardware=True."""
+    def __init__(self, cfg, hardware=False, clock=time.monotonic, factory=None):
+        b = cfg['buzzer']
+        self.cfg, self.clock = b, clock
+        self.device = None
+        self.seen = False
+        self.last = -1e9
+        self.beeps = 0
+        if hardware:
+            if factory is None:
+                from gpiozero import DigitalOutputDevice, PWMOutputDevice
+                factory = lambda: (PWMOutputDevice(b['pin'], active_high=b['active_high'], frequency=2000, initial_value=0)
+                                   if b['passive'] else DigitalOutputDevice(b['pin'], active_high=b['active_high'], initial_value=False))
+            self.device = factory()
+
+    def update(self, detected):
+        """Call once per frame; beeps on the rising edge (no debris -> debris), rate-limited."""
+        now = self.clock()
+        if detected and not self.seen and now-self.last >= self.cfg['cooldown_seconds']:
+            self.last = now
+            self.beeps += 1
+            if self.device is not None:
+                # Passive buzzer needs a 2 kHz square wave (50% duty); active buzzer just needs ON.
+                self.device.value = .5 if self.cfg['passive'] else 1
+                timer = threading.Timer(self.cfg['beep_seconds'], self.device.off)
+                timer.daemon = True
+                timer.start()
+        self.seen = bool(detected)
+        return self.beeps
+
+    def close(self):
+        if self.device is not None:
+            try:
+                self.device.off()
+                self.device.close()
+            except Exception:
+                pass
 
 
 class Motors:

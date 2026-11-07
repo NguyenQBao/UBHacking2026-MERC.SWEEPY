@@ -12,6 +12,7 @@
     "right": {"in1": 17, "in2": 27, "enable": 18, "invert": false},
     "brush": {"in1": 24, "in2": 25, "enable": 21, "invert": false}
   },
+  "buzzer": {"pin": 12, "active_high": true, "passive": false, "beep_seconds": 0.08, "cooldown_seconds": 1.0},
   "wheel_speed": 0.5,
   "turn_speed": 0.5,
   "brush_speed": 0.25,
