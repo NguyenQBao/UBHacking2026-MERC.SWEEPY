@@ -28,7 +28,7 @@
   "angle_tolerance_deg": 6,
   "center_tolerance_mm": 15,
   "collect_y_mm": 60,
-  "max_y_mm": 600,
+  "max_y_mm": 400,
   "half_brush_mm": 100,
   "match_pixels": 100,
   "observation_timeout": 2.5,

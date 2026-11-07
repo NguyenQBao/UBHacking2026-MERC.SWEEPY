@@ -205,7 +205,7 @@
   "software/metalsweep-control/.gitignore": "72f1ea62a04737ad9d2fd4fb0fce0757cfe465e2d68c5a86445144926fb517b6",
   "software/metalsweep-control/README_先按顺序测试.md": "a09c804daff1a8df8e80f69cdd905d99ed6deb99da1a2835790187e8b909f966",
   "software/metalsweep-control/calibrate.py": "8cc3730116f790942a98a55f327df32d1b2ae577f403cf0e5498dbe515589c89",
-  "software/metalsweep-control/config.json": "abfd269e621ffb1f49e26f2297378af10a9e22725b4cec2c27d6bf08e228add8",
+  "software/metalsweep-control/config.json": "5582b713f4c7e9cbc0db03e21ed6aa6e58f308a26b9b9bff910d5acc535c707e",
   "software/metalsweep-control/control.py": "59a7a46e4ffac8925ec15368261a902c1650f43e92f6dc0b409e94e6738a1a0d",
   "software/metalsweep-control/index.html": "e0ea12a5bbfc76dfff7a45ccb8dbe1cffe5031739358ca7825153438aec39039",
   "software/metalsweep-control/points.example.json": "8661df558487c2920e1020fcd5d069917187113b50c296502bfd99d6b884d81b",
