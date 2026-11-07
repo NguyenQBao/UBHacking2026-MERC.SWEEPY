@@ -65,16 +65,16 @@
 
 ## L298N车轮（BCM编号）
 
-2026-11-07按实物接线：ENB由GPIO19改为GPIO13，刷子继电器相应由GPIO13改为GPIO19。[接线PDF](../hardware/wiring/树莓派4B_L298N_双官方原图接线.pdf)仍为旧版（ENB画在物理35脚），以本表为准。
+2026-11-07按实物接线：ENB由GPIO19改为GPIO13，刷子继电器相应由GPIO13改为GPIO19。[接线PDF](../hardware/wiring/树莓派4B_L298N_双官方原图接线.pdf)仍为旧版（ENB画在物理35脚），以本表为准。实车核对：IN1/IN2/ENA驱动右侧轮、IN3/IN4/ENB驱动左侧轮，左组软件反向（invert）。
 
 | Pi GPIO | 物理脚 | 模块端口 |
 |---|---:|---|
-| 17 | 11 | IN1左组 |
-| 27 | 13 | IN2左组 |
-| 18 | 12 | ENA左组PWM |
-| 22 | 15 | IN3右组 |
-| 23 | 16 | IN4右组 |
-| 13 | 33 | ENB右组PWM |
+| 17 | 11 | IN1右组 |
+| 27 | 13 | IN2右组 |
+| 18 | 12 | ENA右组PWM |
+| 22 | 15 | IN3左组 |
+| 23 | 16 | IN4左组 |
+| 13 | 33 | ENB左组PWM |
 | GND | 6 | GND共地 |
 
 完整电源/跳帽方案见[Pi4B接线图](../hardware/wiring/树莓派4B_L298N_双官方原图接线.pdf)和[控制说明](../software/metalsweep-control/README_先按顺序测试.md)。外接5V逻辑输入方案只有在确认模块5V-EN稳压跳帽取下时才适用。图示不是任意L298N克隆板的供电保证。

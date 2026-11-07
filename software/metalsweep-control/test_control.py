@@ -149,6 +149,7 @@ class Tests(unittest.TestCase):
     def test_gpio_adapter_invert_disable_close(self):
         self.cfg.update(wheel_driver_verified=True, brush_driver_verified=True)
         self.cfg['brush_mode'] = 'hbridge'
+        self.cfg['motors']['left']['invert'] = False
         self.cfg['motors']['right']['invert'] = True
         made = {}
         class Pin:
@@ -158,8 +159,10 @@ class Tests(unittest.TestCase):
         m = Motors(self.cfg, hardware=True, background=False, factory=lambda pin, pwm: Pin(pin))
         try:
             m.pulse(Action(.2, .2, .4, .1))
-            self.assertTrue(made[17].value); self.assertFalse(made[22].value)
-            self.assertTrue(made[23].value); self.assertEqual(made[19].value, .4)
+            # left = GPIO22/23 forward; right = GPIO17/27 inverted
+            self.assertTrue(made[22].value); self.assertFalse(made[23].value)
+            self.assertFalse(made[17].value); self.assertTrue(made[27].value)
+            self.assertEqual(made[19].value, .4)
             m.stop()
             self.assertTrue(all(made[p].value == 0 for p in (18, 19, 13)))
         finally: m.close()
