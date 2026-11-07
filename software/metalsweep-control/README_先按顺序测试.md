@@ -113,7 +113,7 @@ Mac 浏览器也打开 **http://127.0.0.1:8091/**；隧道窗口保持运行。�
 python3 run.py --hsv 0,220,220 --hardware --wheels-only
 ```
 
-网页“Wheels”区有4个滑块：Drive speed、Drive step time、Turn speed、Turn step time（范围同config校验）。拖动后立即生效，重启后失效；点“Save as default”才写回config.json。改了之后每步距离/角度要重测。
+网页“Wheels”区有4个滑块：Drive speed、Drive step time、Turn speed、Turn step time（范围同config校验）。拖动后立即生效，重启后失效；点“Save as default”才写回config.json。转向范围较大：Turn speed 0.05–1.0、Turn step time 0.02–0.6秒；滑块下方有推荐值/实测值表，“Use recommended”一键恢复推荐值（0.50/0.10、0.50/0.10）。键盘方向键↑↓←→单步行驶，空格急停。改了之后每步距离/角度要重测。
 
 架空轮子，逐次点“Forward step”“Turn left step”“Turn right step”“STOP ALL”。默认 PWM22%、前进0.10秒、转向0.07秒，是保守起调值，不能保证每台电机都能起转。若起不来不要让其长时间通电堵住；先检查电源/接线，再小幅调整速度参数。`invert` 只反转该组实际电气方向；摄像头图像不能镜像，否则左右关系改变。
 

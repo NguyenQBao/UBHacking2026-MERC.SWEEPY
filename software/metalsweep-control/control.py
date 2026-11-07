@@ -29,9 +29,9 @@ class Action:
 def validate(cfg):
     """Reject unsafe or ambiguous config before opening GPIO."""
     bounds = {
-        'wheel_speed': (.05, .5), 'turn_speed': (.05, .5),
+        'wheel_speed': (.05, .5), 'turn_speed': (.05, 1),
         'brush_speed': (.05, 1), 'move_seconds': (.02, .3),
-        'turn_seconds': (.02, .3), 'sweep_seconds': (.02, 1),
+        'turn_seconds': (.02, .6), 'sweep_seconds': (.02, 1),
         'forward_mm_per_second': (10, 500), 'entry_margin_mm': (0, 50),
         'spinup_seconds': (.05, 1), 'tail_seconds': (.05, 1),
         'settle_seconds': (.1, 2), 'confidence': (.1, .99),

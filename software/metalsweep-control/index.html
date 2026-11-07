@@ -4,7 +4,7 @@
 section{background:white;border-radius:10px;padding:12px 16px;margin:14px 0}h2{font-size:19px;margin:4px 0 10px}
 .row{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;margin:8px 0}input[type=range]{width:100%}.val{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
 .badge{display:inline-block;padding:3px 10px;border-radius:12px;background:#ccd;font-weight:600}.on{background:#1f8a3a;color:white}.off{background:#ccd}.na{background:#e7b3b8}
-select{font-size:17px;padding:10px;border-radius:8px}.hint{color:#567;font-size:14px;margin:4px 0}#saved{color:#1f8a3a;margin-left:8px}
+select{font-size:17px;padding:10px;border-radius:8px}.rec{border-collapse:collapse;font-size:14px;margin:8px 0;width:100%}.rec th,.rec td{border-bottom:1px solid #dde;padding:4px 6px;text-align:left}kbd{border:1px solid #9aa;border-radius:4px;padding:0 5px;background:#f6f8f9}.hint{color:#567;font-size:14px;margin:4px 0}#saved{color:#1f8a3a;margin-left:8px}
 @media(max-width:560px){.row{grid-template-columns:1fr 60px}.row label{grid-column:1/-1}}</style>
 <h1>Camera · Wheels · Brush</h1>
 <p>Simulation mode by default. Each click runs one short pulse. Auto collects one target only, then stops for you to check. Keep this page in the foreground.</p>
@@ -12,14 +12,20 @@ select{font-size:17px;padding:10px;border-radius:8px}.hint{color:#567;font-size:
 <p id="error"></p><img id="view" alt="Waiting for camera"><p id="pixel">Click the image to see pixel coordinates for calibration.</p>
 
 <section><h2>Wheels</h2>
+<p class="hint">Keyboard: <kbd>↑</kbd> forward, <kbd>↓</kbd> back, <kbd>←</kbd> turn left, <kbd>→</kbd> turn right, <kbd>Space</kbd> stop.</p>
 <div><button data-cmd="forward">Forward step</button><button data-cmd="back">Back step</button>
 <button data-cmd="left">Turn left step</button><button data-cmd="right">Turn right step</button></div>
 <div class="row"><label for="wheel_speed">Drive speed</label><input type="range" id="wheel_speed" min="0.05" max="0.5" step="0.01"><span class="val" data-for="wheel_speed">–</span></div>
 <div class="row"><label for="move_seconds">Drive step time</label><input type="range" id="move_seconds" min="0.02" max="0.3" step="0.01"><span class="val" data-for="move_seconds">–</span></div>
-<div class="row"><label for="turn_speed">Turn speed</label><input type="range" id="turn_speed" min="0.05" max="0.5" step="0.01"><span class="val" data-for="turn_speed">–</span></div>
-<div class="row"><label for="turn_seconds">Turn step time</label><input type="range" id="turn_seconds" min="0.02" max="0.3" step="0.01"><span class="val" data-for="turn_seconds">–</span></div>
-<p class="hint">Speed = PWM duty (0.05–0.5). Step time in seconds (0.02–0.3). Changes apply at once but are lost on restart unless saved. Re-measure distance/angle per step after changing.</p>
-<button id="save">Save as default</button><span id="saved"></span>
+<div class="row"><label for="turn_speed">Turn speed</label><input type="range" id="turn_speed" min="0.05" max="1" step="0.01"><span class="val" data-for="turn_speed">–</span></div>
+<div class="row"><label for="turn_seconds">Turn step time</label><input type="range" id="turn_seconds" min="0.02" max="0.6" step="0.01"><span class="val" data-for="turn_seconds">–</span></div>
+<table class="rec"><tr><th></th><th>Speed</th><th>Step time</th><th>Measured result</th></tr>
+<tr><td>Drive (recommended)</td><td>0.50</td><td>0.10 s</td><td>Shorter steps aim better; re-measure on your floor</td></tr>
+<tr><td>Drive (measured)</td><td>0.50</td><td>0.30 s</td><td>≈145 mm per step</td></tr>
+<tr><td>Turn (recommended)</td><td>0.50</td><td>0.10 s</td><td>≈4.1° per step (88 steps = 360°)</td></tr>
+<tr><td>Turn (coarse)</td><td>0.50</td><td>0.20 s</td><td>≈12.4° per step (29 steps = 360°)</td></tr></table>
+<p class="hint">Ranges: drive speed 0.05–0.5, drive step 0.02–0.3 s, turn speed 0.05–1.0, turn step 0.02–0.6 s. Below ≈0.22 speed the wheels may not start. Floor friction changes the result, so re-check after changing. Changes apply at once; click Save as default to keep them after restart.</p>
+<button id="recommended">Use recommended</button><button id="save">Save as default</button><span id="saved"></span>
 </section>
 
 <section><h2>Brush</h2>
@@ -44,7 +50,12 @@ const sliders=['wheel_speed','move_seconds','turn_speed','turn_seconds'];
 let loaded=false;
 const show=k=>document.querySelector(`[data-for=${k}]`).textContent=Number(document.getElementById(k).value).toFixed(2);
 sliders.forEach(k=>{const el=document.getElementById(k);el.oninput=()=>show(k);el.onchange=()=>send({command:'set',key:k,value:Number(el.value)})});
-addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();command('stop')}});
+const keys={ArrowUp:'forward',ArrowDown:'back',ArrowLeft:'left',ArrowRight:'right'};
+addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();command('stop');return}
+  const tag=document.activeElement&&document.activeElement.tagName;
+  if(keys[e.key]&&!e.repeat&&tag!=='INPUT'&&tag!=='SELECT'){e.preventDefault();command(keys[e.key])}});
+const RECOMMENDED={wheel_speed:.5,move_seconds:.1,turn_speed:.5,turn_seconds:.1};
+document.querySelector('#recommended').onclick=async()=>{for(const k of sliders){document.getElementById(k).value=RECOMMENDED[k];show(k);if(!await send({command:'set',key:k,value:RECOMMENDED[k]}))return}};
 addEventListener('blur',()=>command('stop'));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)command('stop')});
 setInterval(()=>{if(!document.hidden&&document.hasFocus())command('heartbeat')},500);

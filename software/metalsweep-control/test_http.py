@@ -129,6 +129,13 @@ class HTTPTests(unittest.TestCase):
             self.assertEqual(json.loads(request('GET', '/state')[1])['settings']['wheel_speed'], .3)
             self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'wheel_speed', 'value': .9})[0], 400)
             self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'brush_speed', 'value': .3})[0], 400)
+            # Turn has a wider range than drive: speed up to 1.0, step up to 0.6 s.
+            self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'turn_speed', 'value': .9})[0], 200)
+            self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'turn_speed', 'value': 1.1})[0], 400)
+            self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'turn_seconds', 'value': .6})[0], 200)
+            self.assertEqual(request('POST', '/command', {'command': 'set', 'key': 'turn_seconds', 'value': .7})[0], 400)
+            request('POST', '/command', {'command': 'left'})
+            self.assertEqual(motors.values[:2], (-.9, .9))
             self.assertEqual(cfg['wheel_speed'], .3)
             request('POST', '/command', {'command': 'forward'})
             self.assertEqual(motors.values[:2], (.3, .3))
