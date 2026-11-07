@@ -16,7 +16,7 @@
   "turn_speed": 0.5,
   "brush_speed": 0.25,
   "move_seconds": 0.3,
-  "turn_seconds": 0.2,
+  "turn_seconds": 0.1,
   "sweep_seconds": 0.80,
   "forward_mm_per_second": 100,
   "entry_margin_mm": 10,
