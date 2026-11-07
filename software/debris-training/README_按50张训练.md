@@ -134,6 +134,24 @@ python workflow.py export --imgsz 320
 
 本工具完成采集、标注、训练、离线预测/评估和模型导出；**现有Pi检测网页不会自动换成新模型**。之后还需接入模型推理，并在Pi上验证相机预处理、方向、帧率和实际精度。导出成功不等于已部署，更不等于可以安全自动行驶。
 
+## 导出训练数据
+
+工作台第4区有两个下载按钮（浏览器直接下载ZIP，不修改工作区）：
+
+| 按钮 | 内容 | 用途 |
+|---|---|---|
+| 下载 YOLO 数据集 | 只含**已确认**标注；`images/{train,val,test}`、`labels/{train,val,test}`、`data.yaml`（`path: .`）、`provenance.json` | 在其他电脑、Colab、Ultralytics直接训练：解压后 `yolo detect train data=data.yaml` |
+| 下载完整备份 | 全部照片（含未确认）+ `manifest.json` | 备份或换电脑继续标注：解压成一个文件夹，`python studio.py --root 该文件夹` |
+
+命令行同样可用（输出默认放 `workspace/exports/`）：
+
+```bash
+python workflow.py export-dataset --format yolo
+python workflow.py export-dataset --format backup --out ~/Desktop/metalsweep_backup.zip
+```
+
+导出时同样检查场景/重复图片跨集合和原图校验和，不合格会拒绝导出。
+
 ## 文件与备份
 
 | 文件/文件夹 | 含义 |

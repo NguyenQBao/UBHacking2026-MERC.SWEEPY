@@ -199,6 +199,22 @@ class Handler(BaseHTTPRequestHandler):
         if origin and origin != 'http://' + host:
             raise ValueError('不接受其他网页发来的修改请求')
 
+    def send_export(self, kind):
+        import tempfile
+        from workflow import export_dataset   # workflow imports studio; import lazily
+        stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        with tempfile.TemporaryDirectory() as temp:
+            out, _ = export_dataset(self.server.store.root, Path(temp) / f'metalsweep_{kind}_{stamp}.zip', kind)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/zip')
+            self.send_header('Content-Length', str(out.stat().st_size))
+            self.send_header('Content-Disposition', f'attachment; filename="{out.name}"')
+            self.send_header('Cache-Control', 'no-store')
+            self.end_headers()
+            with out.open('rb') as source:
+                while chunk := source.read(1 << 20):
+                    self.wfile.write(chunk)
+
     def camera(self):
         if not self.server.camera_url:
             raise ValueError('未配置Pi相机；可先导入照片，或重启时指定 --camera-url')
@@ -221,6 +237,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.reply(self.server.jobs.state())
             elif path == '/camera.jpg':
                 self.reply(self.camera(), kind='image/jpeg')
+            elif path in ('/api/export/yolo.zip', '/api/export/backup.zip'):
+                self.send_export(path.rsplit('/', 1)[1][:-4])
             elif re.fullmatch(r'/image/\d{6,}\.jpg', path):
                 image = self.server.store.root / 'images' / path.rsplit('/', 1)[1]
                 self.reply(image.read_bytes(), kind='image/jpeg')

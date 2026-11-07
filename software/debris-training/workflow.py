@@ -9,6 +9,8 @@ import os
 from pathlib import Path
 import shutil
 import sys
+import tempfile
+import zipfile
 
 from studio import Store, SPLITS, write_json
 
@@ -72,6 +74,56 @@ def snapshot(root, destination, required=('train', 'val')):
     return destination / 'data.yaml'
 
 
+EXPORT_README = '''METALSWEEP debris 训练数据导出
+导出时间：{created}
+格式：{kind}
+
+yolo   = 标准YOLO检测数据集（只含已确认标注）。images/{{train,val,test}}、labels/{{train,val,test}}、data.yaml、provenance.json。
+         类别 0 = debris。可直接用于 Ultralytics：yolo detect train data=data.yaml（data.yaml 的 path 为解压目录 .）。
+backup = 完整工作区备份（含未确认图片）。images/ + manifest.json；解压成一个文件夹后用
+         python studio.py --root 该文件夹  即可继续标注/训练。
+'''
+
+
+def export_dataset(root, out, kind='yolo'):
+    """Write a portable ZIP of the training data. kind='yolo' (reviewed, standard layout) or 'backup' (everything)."""
+    if kind not in ('yolo', 'backup'):
+        raise ValueError('导出格式只能是 yolo 或 backup')
+    root, out = Path(root).resolve(), Path(out).resolve()
+    store = Store(root)
+    data = store.read()
+    if not data['records']:
+        raise ValueError('还没有任何照片可导出')
+    out.parent.mkdir(parents=True, exist_ok=True)
+    partial = out.with_name(out.name + '.partial')
+    created = datetime.now(timezone.utc).isoformat()
+    counts = {}
+    with tempfile.TemporaryDirectory() as temp, zipfile.ZipFile(partial, 'w', zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr('README_EXPORT.txt', EXPORT_README.format(created=created, kind=kind))
+        if kind == 'yolo':
+            folder = Path(temp) / 'dataset'
+            snapshot(root, folder, required=())
+            text = (folder / 'data.yaml').read_text(encoding='utf-8').splitlines()
+            (folder / 'data.yaml').write_text('\n'.join(['path: .'] + text[1:]) + '\n', encoding='utf-8')
+            for path in sorted(folder.rglob('*')):
+                if path.is_file():
+                    # JPEGs are already compressed; store them to keep export fast.
+                    method = zipfile.ZIP_STORED if path.suffix == '.jpg' else zipfile.ZIP_DEFLATED
+                    archive.write(path, path.relative_to(folder).as_posix(), compress_type=method)
+            counts = json.loads((folder / 'provenance.json').read_text(encoding='utf-8'))['counts']
+        else:
+            for r in data['records']:
+                source = root / r['file']
+                if sha256(source.read_bytes()).hexdigest() != r['sha256']:
+                    raise ValueError('原始图片已被修改，拒绝导出: ' + r['id'])
+                archive.write(source, r['file'], compress_type=zipfile.ZIP_STORED)
+            archive.writestr('manifest.json', json.dumps(data, ensure_ascii=False, indent=2))
+            counts = dict(images=len(data['records']), reviewed=sum(r['reviewed'] for r in data['records']))
+    partial.replace(out)
+    print(f'已导出 {out}：' + json.dumps(counts, ensure_ascii=False), flush=True)
+    return out, counts
+
+
 def latest_model(root):
     candidates = list((Path(root) / 'runs').glob('round_*/weights/best.pt'))
     # Only successfully completed rounds become the default for the next round.
@@ -113,6 +165,10 @@ def run(args):
     # Keep library settings and font caches with this workspace, not global app preferences.
     os.environ.setdefault('YOLO_CONFIG_DIR', str(root / 'runtime' / 'ultralytics'))
     os.environ.setdefault('MPLCONFIGDIR', str(root / 'runtime' / 'matplotlib'))
+    if args.command == 'export-dataset':
+        out = Path(args.out) if args.out else root / 'exports' / (unique_name('dataset_' + args.format) + '.zip')
+        export_dataset(root, out, args.format)
+        return
     if args.command == 'prepare':
         output = root / 'snapshots' / unique_name('dataset')
         print(snapshot(root, output), flush=True)
@@ -178,7 +234,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('prepare', 'train', 'evaluate', 'predict', 'export'))
+    parser.add_argument('command', choices=('prepare', 'train', 'evaluate', 'predict', 'export', 'export-dataset'))
     parser.add_argument('--root', default=str(HERE / 'workspace'))
     parser.add_argument('--model', help='默认使用上一轮成功训练的best.pt，首轮用yolo11n.pt')
     parser.add_argument('--device', default='auto', choices=('auto', 'cpu', 'mps', '0'))
@@ -188,6 +244,8 @@ def main():
     parser.add_argument('--split', choices=('val', 'test'), default='test')
     parser.add_argument('--source')
     parser.add_argument('--conf', type=float, default=.35)
+    parser.add_argument('--format', choices=('yolo', 'backup'), default='yolo', help='export-dataset 格式')
+    parser.add_argument('--out', help='export-dataset 输出 ZIP 路径；默认 workspace/exports/')
     args = parser.parse_args()
     try:
         run(args)

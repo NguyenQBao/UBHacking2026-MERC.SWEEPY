@@ -11,7 +11,8 @@ from http.server import ThreadingHTTPServer
 from PIL import Image, ImageDraw
 
 from studio import Handler, Jobs, Store
-from workflow import snapshot, latest_model
+from workflow import snapshot, latest_model, export_dataset
+import zipfile
 
 
 def photo(index):
@@ -94,6 +95,31 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             snapshot(self.store.root, self.root / 'changed')
 
+    def test_export_yolo_zip_and_full_backup(self):
+        first = self.add(1)
+        self.add(2, 'val')
+        pending = self.add(3, reviewed=False)
+        out, counts = export_dataset(self.store.root, self.root / 'out/yolo.zip', 'yolo')
+        self.assertEqual(counts['train']['images'], 1)
+        with zipfile.ZipFile(out) as z:
+            names = set(z.namelist())
+            self.assertIn(f'images/train/{first["id"]}.jpg', names)
+            self.assertIn(f'labels/train/{first["id"]}.txt', names)
+            self.assertNotIn(f'images/train/{pending["id"]}.jpg', names)   # unreviewed stays out
+            yaml = z.read('data.yaml').decode()
+            self.assertTrue(yaml.startswith('path: .\n'))                     # portable, no local path
+            self.assertIn('0: debris', yaml)
+            self.assertEqual(z.read(f'labels/train/{first["id"]}.txt').decode().split()[1:], ['0.30000000', '0.50000000', '0.40000000', '0.50000000'])
+        out, counts = export_dataset(self.store.root, self.root / 'out/backup.zip', 'backup')
+        self.assertEqual(counts, dict(images=3, reviewed=2))
+        with zipfile.ZipFile(out) as z:
+            z.extractall(self.root / 'restored')
+        restored = Store(self.root / 'restored').summary()                     # backup reopens as a workspace
+        self.assertEqual((restored['total'], restored['reviewed']), (3, 2))
+        self.assertFalse(list((self.root / 'out').glob('*.partial')))
+        with self.assertRaises(ValueError):
+            export_dataset(self.store.root, self.root / 'x.zip', 'coco')
+
     def test_failed_round_not_used_as_next_model(self):
         for name in ('round_001', 'round_002'):
             folder = self.store.root / 'runs' / name
@@ -122,6 +148,14 @@ class WorkflowTests(unittest.TestCase):
                 self.assertTrue(json.load(response)['reviewed'])
             with opener.open(base + '/image/' + r['id'] + '.jpg') as response:
                 self.assertEqual(Image.open(BytesIO(response.read())).size, (100, 80))
+            with opener.open(base + '/api/export/yolo.zip') as response:
+                self.assertEqual(response.headers['Content-Type'], 'application/zip')
+                self.assertIn('attachment', response.headers['Content-Disposition'])
+                with zipfile.ZipFile(BytesIO(response.read())) as z:
+                    self.assertIn(f'labels/train/{r["id"]}.txt', z.namelist())
+            with opener.open(base + '/api/export/backup.zip') as response:
+                with zipfile.ZipFile(BytesIO(response.read())) as z:
+                    self.assertIn('manifest.json', z.namelist())
             for headers in ({'Origin': 'https://unrelated.example'}, {'Host': 'unrelated.example'}):
                 bad = Request(base + '/api/label', json.dumps(data).encode(),
                               {'Content-Type': 'application/json', **headers})
