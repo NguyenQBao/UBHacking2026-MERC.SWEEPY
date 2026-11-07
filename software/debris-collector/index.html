@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>METALSWEEP Data Collector</title>
+<style>
+body{font:16px system-ui;max-width:1100px;margin:16px auto;padding:0 16px;background:#eef3f5;color:#17303a}
+h1{font-size:24px;margin:4px 0}h2{font-size:17px;margin:0 0 8px}section{background:white;border-radius:10px;padding:12px 16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+img{width:100%;background:#123;border-radius:6px;min-height:80px;display:block}
+button,select,input{font:inherit;padding:10px 14px;border:1px solid #9aa;border-radius:8px;margin:4px 4px 4px 0;background:white;color:inherit}
+input[type=text]{width:200px}input[type=checkbox]{width:20px;height:20px;vertical-align:middle;margin:0 6px 0 0}
+#capture{background:#196b53;color:white;font-weight:bold;font-size:20px;padding:14px 28px;border-color:#196b53}
+#capture:disabled{opacity:.5}a.btn{display:inline-block;text-decoration:none;padding:10px 14px;border:1px solid #9aa;border-radius:8px;color:inherit;background:white}
+#msg{padding:10px 14px;border-left:4px solid #196b53;background:#e7f5e9;border-radius:6px;min-height:22px}#msg.err{border-color:#bb4f25;background:#fff0e9}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #dde;padding:5px 6px;text-align:left}
+.bar{height:8px;background:#e3eae8;border-radius:4px;overflow:hidden;min-width:60px}.bar i{display:block;height:100%;background:#196b53}
+.hint{color:#567;font-size:14px}kbd{border:1px solid #9aa;border-radius:4px;padding:0 5px;background:#f6f8f9}
+.split-train{color:#196b53}.split-val{color:#2f5fa8}.split-test{color:#9a5a12}
+</style>
+<h1>Data Collector</h1>
+<p class="hint">Capture photos only (no labelling, no training). Label and train later on the Mac training studio after importing the exported ZIP.</p>
+<div id="msg">Loading…</div>
+<div class="grid">
+<section><h2>Live camera</h2><img id="preview" alt="Waiting for camera">
+<p class="hint">Preview refreshes about twice a second. Move your hand out and let the car stand still before capturing.</p></section>
+<section><h2>Capture</h2>
+<label>Scene <input id="scene" type="text" value="deskA_day" maxlength="60"></label><br>
+<label>Split <select id="split"><option value="train">train (teach the model)</option><option value="val">val (check during training)</option><option value="test">test (final score)</option></select></label><br>
+<label><input id="empty" type="checkbox">No debris in this shot</label><br>
+<button id="capture">Capture <small>(Enter)</small></button><button id="undo">Undo last</button>
+<p class="hint">One scene name = one split. Change the name only when the place, table or light really changes.</p>
+<p><b>Last photo</b> <span id="lastInfo" class="hint"></span></p><img id="last" alt="No photo yet" style="max-height:180px;object-fit:contain">
+</section></div>
+<section><h2>Progress (first round target: train 30 · val 10 · test 10, about 20% empty)</h2>
+<table><thead><tr><th>Split</th><th>Photos</th><th>Target</th><th></th><th>Empty</th><th>Scenes</th></tr></thead><tbody id="splits"></tbody></table></section>
+<section><h2>Scenes</h2><table><thead><tr><th>Scene</th><th>Split</th><th>Photos</th><th>Empty</th></tr></thead><tbody id="scenes"></tbody></table></section>
+<section><h2>Checklist for each scene</h2>
+<p class="hint">Put debris (caps, paper balls) at <b>left / centre / right</b> × <b>near (≈5 cm) / middle / far (≈40 cm)</b>. Vary count (1–4), orientation and spacing. Include a few hard backgrounds (cables, tape, shadows) as empty shots. Avoid many near-identical frames.</p></section>
+<section><h2>Export</h2>
+<a class="btn" id="export" href="/export.zip" download>Download collection ZIP</a>
+<p class="hint">Saves to the Pi's Downloads folder. Copy it to the Mac and import it in the training studio (see README). Photos also stay in <code id="root"></code>.</p></section>
+<script>
+const $=id=>document.getElementById(id), TARGET={train:30,val:10,test:10};
+function msg(t,err=false){$('msg').textContent=t;$('msg').className=err?'err':''}
+async function post(path,body){const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});const d=await r.json();if(!r.ok)throw Error(d.error);return d}
+function render(s){
+  $('root').textContent=s.root;
+  $('splits').innerHTML=['train','val','test'].map(k=>{const v=s.splits[k],pct=Math.min(100,100*v.total/TARGET[k]),ep=v.total?Math.round(100*v.empty/v.total):0;
+    return `<tr><td class="split-${k}"><b>${k}</b></td><td>${v.total}</td><td>${TARGET[k]}</td><td><div class="bar"><i style="width:${pct}%"></i></div></td><td>${v.empty} (${ep}%)</td><td>${v.scenes}</td></tr>`}).join('');
+  const rows=Object.entries(s.scenes);
+  $('scenes').innerHTML=rows.length?rows.map(([n,v])=>`<tr><td>${n.replace(/[<&]/g,'')}</td><td class="split-${v.split}">${v.split}</td><td>${v.total}</td><td>${v.empty}</td></tr>`).join(''):'<tr><td colspan="4" class="hint">No photos yet</td></tr>';
+  if(s.last){$('lastInfo').textContent=s.last.file+(s.last.empty?' (empty)':'');$('last').src='/last.jpg?t='+Date.now()}else{$('lastInfo').textContent='';$('last').removeAttribute('src')}
+}
+async function refresh(){const r=await fetch('/state');const d=await r.json();if(!r.ok)throw Error(d.error);render(d);return d}
+let busy=false;
+async function capture(){if(busy)return;busy=true;$('capture').disabled=true;try{const d=await post('/capture',{scene:$('scene').value,split:$('split').value,empty:$('empty').checked});render(d.state);msg('Saved '+d.record.file+(d.record.empty?' (empty)':'')+'. Move the debris, then capture again.')}catch(e){msg(e.message,true)}finally{busy=false;$('capture').disabled=false}}
+$('capture').onclick=capture;
+$('undo').onclick=async()=>{if(!confirm('Delete the last photo?'))return;try{const d=await post('/undo');render(d.state);msg('Deleted '+d.record.file)}catch(e){msg(e.message,true)}};
+addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.tagName!=='SELECT'){e.preventDefault();capture()}});
+let loading=false;
+function tick(){if(document.hidden||loading)return;loading=true;const im=new Image();im.onload=()=>{$('preview').src=im.src;loading=false};im.onerror=()=>{loading=false;msg('No camera image. Start the car backend (run.py) first, or start this collector with --picamera.',true)};im.src='/preview.jpg?t='+Date.now()}
+setInterval(tick,500);
+refresh().then(()=>msg('Ready. Set scene and split, place debris, press Capture or Enter.')).catch(e=>msg(e.message,true));
+</script></html>

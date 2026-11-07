@@ -124,6 +124,42 @@ def export_dataset(root, out, kind='yolo'):
     return out, counts
 
 
+def import_collection(root, source):
+    """Import a Pi data-collector ZIP (or its folder): photos keep their scene and split, labels stay unreviewed."""
+    store = Store(root)
+    source = Path(source).expanduser().resolve()
+    added, skipped, errors = 0, 0, []
+    def entries():
+        if source.is_dir():
+            manifest = json.loads((source / 'manifest.json').read_text(encoding='utf-8'))
+            for r in manifest['records']:
+                yield r, (source / r['file']).read_bytes()
+        else:
+            with zipfile.ZipFile(source) as archive:
+                manifest = json.loads(archive.read('manifest.json'))
+                for r in manifest['records']:
+                    yield r, archive.read(r['file'])
+    for record, raw in entries():
+        if record.get('split') not in SPLITS or not record.get('scene'):
+            errors.append(f'{record.get("file")}: 缺少场景或用途')
+            continue
+        if sha256(raw).hexdigest() != record.get('sha256'):
+            errors.append(f'{record["file"]}: 校验和不符，文件可能损坏')
+            continue
+        tag = 'collector:' + record['file'] + (':empty' if record.get('empty') else '')
+        try:
+            store.add(raw, record['scene'], record['split'], tag)
+            added += 1
+        except ValueError as error:
+            if '已存在' in str(error):
+                skipped += 1
+            else:
+                errors.append(f'{record["file"]}: {error}')
+    result = dict(added=added, skipped_duplicates=skipped, errors=errors[:50], error_count=len(errors))
+    print('采集包导入：' + json.dumps(result, ensure_ascii=False), flush=True)
+    return result
+
+
 def latest_model(root):
     candidates = list((Path(root) / 'runs').glob('round_*/weights/best.pt'))
     # Only successfully completed rounds become the default for the next round.
@@ -165,6 +201,11 @@ def run(args):
     # Keep library settings and font caches with this workspace, not global app preferences.
     os.environ.setdefault('YOLO_CONFIG_DIR', str(root / 'runtime' / 'ultralytics'))
     os.environ.setdefault('MPLCONFIGDIR', str(root / 'runtime' / 'matplotlib'))
+    if args.command == 'import-collection':
+        if not args.source:
+            raise ValueError('请用 --source 指定采集包 ZIP 或文件夹')
+        import_collection(root, args.source)
+        return
     if args.command == 'export-dataset':
         out = Path(args.out) if args.out else root / 'exports' / (unique_name('dataset_' + args.format) + '.zip')
         export_dataset(root, out, args.format)
@@ -234,7 +275,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('prepare', 'train', 'evaluate', 'predict', 'export', 'export-dataset'))
+    parser.add_argument('command', choices=('prepare', 'train', 'evaluate', 'predict', 'export', 'export-dataset', 'import-collection'))
     parser.add_argument('--root', default=str(HERE / 'workspace'))
     parser.add_argument('--model', help='默认使用上一轮成功训练的best.pt，首轮用yolo11n.pt')
     parser.add_argument('--device', default='auto', choices=('auto', 'cpu', 'mps', '0'))

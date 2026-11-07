@@ -11,7 +11,7 @@ from http.server import ThreadingHTTPServer
 from PIL import Image, ImageDraw
 
 from studio import Handler, Jobs, Store
-from workflow import snapshot, latest_model, export_dataset
+from workflow import snapshot, latest_model, export_dataset, import_collection
 import zipfile
 
 
@@ -120,6 +120,30 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             export_dataset(self.store.root, self.root / 'x.zip', 'coco')
 
+    def test_import_pi_collection_keeps_scene_and_split(self):
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'debris-collector'))
+        from collect import Collection
+        def jpg(i):
+            data = BytesIO(); Image.open(BytesIO(photo(i))).save(data, format='JPEG'); return data.getvalue()
+        pi = Collection(self.root / 'pi')
+        pi.add(jpg(1), 'deskA_day', 'train')
+        pi.add(jpg(2), 'deskA_day', 'train', empty=True)
+        pi.add(jpg(3), 'deskB_day', 'val')
+        package = pi.export(self.root / 'collection.zip')
+        result = import_collection(self.store.root, package)
+        self.assertEqual((result['added'], result['error_count']), (3, 0))
+        records = self.store.read()['records']
+        self.assertEqual(sorted((r['session'], r['split']) for r in records),
+                         [('deskA_day', 'train'), ('deskA_day', 'train'), ('deskB_day', 'val')])
+        self.assertFalse(any(r['reviewed'] for r in records))             # still needs boxes / confirmation
+        self.assertTrue(any(r['source'].endswith(':empty') for r in records))
+        again = import_collection(self.store.root, self.root / 'pi')       # folder works too; duplicates skipped
+        self.assertEqual((again['added'], again['skipped_duplicates']), (0, 3))
+        clash = Collection(self.root / 'pi2')
+        clash.add(jpg(4), 'deskA_day', 'test')                             # scene already used as train
+        self.assertEqual(import_collection(self.store.root, clash.export(self.root / 'c2.zip'))['error_count'], 1)
+
     def test_failed_round_not_used_as_next_model(self):
         for name in ('round_001', 'round_002'):
             folder = self.store.root / 'runs' / name
@@ -156,6 +180,15 @@ class WorkflowTests(unittest.TestCase):
             with opener.open(base + '/api/export/backup.zip') as response:
                 with zipfile.ZipFile(BytesIO(response.read())) as z:
                     self.assertIn('manifest.json', z.namelist())
+            import sys
+            sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'debris-collector'))
+            from collect import Collection
+            pi = Collection(self.root / 'pi_http')
+            data_jpg = BytesIO(); Image.open(BytesIO(photo(77))).save(data_jpg, format='JPEG')
+            pi.add(data_jpg.getvalue(), 'deskZ', 'train')
+            package = pi.export(self.root / 'pi_http.zip').read_bytes()
+            with opener.open(Request(base + '/api/import-collection', package, {'Content-Type': 'application/zip'})) as response:
+                self.assertEqual(json.load(response)['added'], 1)
             for headers in ({'Origin': 'https://unrelated.example'}, {'Host': 'unrelated.example'}):
                 bad = Request(base + '/api/label', json.dumps(data).encode(),
                               {'Content-Type': 'application/json', **headers})

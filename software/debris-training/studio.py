@@ -199,6 +199,25 @@ class Handler(BaseHTTPRequestHandler):
         if origin and origin != 'http://' + host:
             raise ValueError('不接受其他网页发来的修改请求')
 
+    def import_collection(self, size):
+        import tempfile
+        from workflow import import_collection   # workflow imports studio; import lazily
+        if self.headers.get('Content-Type') != 'application/zip':
+            raise ValueError('请选择采集后台导出的 ZIP')
+        if not 0 < size <= 2 * 1024**3:
+            raise ValueError('采集包为空或超过2GB')
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'collection.zip'
+            with path.open('wb') as out:
+                left = size
+                while left:
+                    chunk = self.rfile.read(min(left, 1 << 20))
+                    if not chunk:
+                        raise ValueError('上传中断')
+                    out.write(chunk)
+                    left -= len(chunk)
+            return import_collection(self.server.store.root, path)
+
     def send_export(self, kind):
         import tempfile
         from workflow import export_dataset   # workflow imports studio; import lazily
@@ -254,6 +273,9 @@ class Handler(BaseHTTPRequestHandler):
             self.local_request()
             parsed = urlsplit(self.path)
             size = int(self.headers.get('Content-Length', '0'))
+            if parsed.path == '/api/import-collection':
+                self.reply(self.import_collection(size))
+                return
             if not 0 < size <= MAX_UPLOAD:
                 raise ValueError('请求为空或超过12MB')
             body = self.rfile.read(size)

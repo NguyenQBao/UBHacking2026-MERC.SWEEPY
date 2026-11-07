@@ -19,6 +19,7 @@
 | 位置 | 内容 | 使用状态 |
 |---|---|---|
 | [software/debris-training](software/debris-training) | Mac网页采集、框标注、累计YOLO训练、评估、NCNN导出、COCO导入 | 当前训练工具 |
+| [software/debris-collector](software/debris-collector) | 树莓派专用拍照采集网页：按场景/用途分类、进度统计、导出ZIP给训练工作台导入 | 与训练分离，仅标准库 |
 | [software/metalsweep-control](software/metalsweep-control) | CSI图像、目标检测、地面映射、左右轮与刷子有时限控制 | 默认模拟，核验后才启用GPIO |
 | [software/debris-detector-pi4](software/debris-detector-pi4) | 颜色/静态背景检测网页、原图接口 | 独立诊断工具；背景法要求车/光照固定 |
 | [hardware/cad-v8](hardware/cad-v8) | 当前模型：摄像头支架（竖杆/横杆/前部件）、滚刷主轴、清扫轮、斜坡、收集盒，共7个STL | 网格已检查，尚未打印试装 |

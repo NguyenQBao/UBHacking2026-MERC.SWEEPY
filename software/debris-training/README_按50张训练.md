@@ -56,6 +56,10 @@ ssh -N -L 8001:127.0.0.1:8000 pi@raspberrypi.local
 
 这时启动工作台改用 `--camera-url http://127.0.0.1:8001/raw.jpg`。相机地址不可用不影响导入已有照片、标注或训练。
 
+## 用树莓派采集后台拍照（推荐）
+
+拍照可改用独立的[树莓派数据采集后台](../debris-collector/README.md)：在VNC浏览器直接拍，按场景/用途分好，导出ZIP。回到本工作台第1区“导入采集包”，场景和用途原样保留，再逐张画框确认。命令行：`python workflow.py import-collection --source 采集包.zip`。
+
 ## 第一批50张如何分配
 
 这是跑通流程的起点，不是保证精度的数据量。
