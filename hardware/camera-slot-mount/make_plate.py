@@ -16,7 +16,8 @@ GAP = 12.0                    # clear space between neighbouring parts (room for
 # along the neck so the post-to-cradle joint is not split by layer lines. Supports hold the sleeve.
 ROT_Y_90 = np.array([[0, 0, 1], [0, 1, 0], [-1, 0, 0]], float)
 SUPPORT = {'support_material': '1', 'support_material_auto': '1',
-           'support_material_buildplate_only': '1'}   # only from the bed, never inside the slot
+           'support_material_buildplate_only': '1',  # only from the bed, never inside the slot
+           'support_material_style': 'organic'}       # tree (organic) supports
 
 
 def read_stl(path):
