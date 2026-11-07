@@ -10,7 +10,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import cv2
 from control import Buzzer, Controller, Motors, validate
-from vision import Ground, Vision, frame_size, rotate_frame
+from vision import Ground, Vision
 
 HERE = Path(__file__).resolve().parent
 
@@ -70,8 +70,8 @@ class App:
                 else:
                     frame = still.copy()
                 captured_at = time.monotonic()
-                frame = rotate_frame(frame, self.cfg['rotate'])
-                mid = frame.shape[1]/2
+                if self.cfg['rotate180']:
+                    frame = cv2.rotate(frame, cv2.ROTATE_180)
                 targets = self.vision.detect(frame)
                 try:
                     self.buzzer.update(bool(targets))
@@ -86,7 +86,7 @@ class App:
                     x1, y1, x2, y2 = map(int, t.box)
                     cv2.rectangle(view, (x1, y1), (x2, y2), (40, 210, 40), 2)
                     label = f'{t.confidence:.2f}' if self.vision.model else 'HSV test'
-                    offset = t.center[0]-mid
+                    offset = t.center[0]-320
                     direction = 'LEFT' if offset < -20 else 'RIGHT' if offset > 20 else 'CENTER'
                     label += ' '+direction
                     if t.ground:
@@ -94,7 +94,7 @@ class App:
                     cv2.putText(view, label, (x1, max(18, y1-5)), cv2.FONT_HERSHEY_SIMPLEX, .45, (30, 210, 40), 1)
                 if self.vision.ground:
                     cv2.polylines(view, [self.vision.ground.hull.astype('int32')], True, (255, 140, 0), 1)
-                cv2.line(view, (int(mid), 0), (int(mid), frame.shape[0]-1), (0, 210, 255), 1)
+                cv2.line(view, (320, 0), (320, 479), (0, 210, 255), 1)
                 ok, jpeg = cv2.imencode('.jpg', view, [cv2.IMWRITE_JPEG_QUALITY, 75])
                 raw_ok, raw = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
                 if not ok or not raw_ok:
@@ -105,10 +105,9 @@ class App:
                                       auto=self.controller.auto, beeps=self.buzzer.beeps, motors=list(self.controller.motors.values),
                                       processing_ms=round((time.monotonic()-captured_at)*1000),
                                       targets=[{'box': t.box, 'score': t.confidence, 'xy_mm': t.ground,
-                                                'image_direction': ('LEFT' if t.center[0] < mid-20 else 'RIGHT' if t.center[0] > mid+20 else 'CENTER')}
+                                                'image_direction': ('LEFT' if t.center[0] < 300 else 'RIGHT' if t.center[0] > 340 else 'CENTER')}
                                                for t in targets],
-                                      detector='learned debris' if self.vision.model else 'HSV TEST ONLY',
-                                      frame_size=list(frame_size(self.cfg['rotate'])), rotate=self.cfg['rotate'])
+                                      detector='learned debris' if self.vision.model else 'HSV TEST ONLY')
                 self.quit.wait(.08)
         except Exception as e:
             self.controller.stop('CAMERA_OR_INFERENCE_ERROR')
@@ -224,7 +223,7 @@ def main():
             hsv = [int(x) for x in args.hsv.split(',')]
             if len(hsv) != 3 or not 0 <= hsv[0] <= 179 or any(not 0 <= x <= 255 for x in hsv[1:]):
                 raise ValueError('HSV must be H0..179,S0..255,V0..255')
-        ground = Ground(args.ground, cfg['rotate']) if args.ground else None
+        ground = Ground(args.ground, cfg['rotate180']) if args.ground else None
         os.environ.setdefault('YOLO_CONFIG_DIR', str(HERE/'runtime'/'ultralytics'))
         vision = Vision(cfg, args.model, hsv, ground)
         motors = Motors(cfg, hardware=args.hardware, brush_enabled=not args.wheels_only)

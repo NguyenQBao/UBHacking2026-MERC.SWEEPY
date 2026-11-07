@@ -5,7 +5,7 @@ import time
 import unittest
 import numpy as np
 from control import Action, Controller, Motors, Target, validate
-from vision import Ground, Vision, fit_ground, frame_size, rotate_frame
+from vision import Ground, Vision, fit_ground
 
 HERE = Path(__file__).resolve().parent
 
@@ -211,39 +211,12 @@ class Tests(unittest.TestCase):
         data = fit_ground(points, (640, 480))
         with tempfile.TemporaryDirectory() as d:
             p = Path(d)/'ground.json'; p.write_text(json.dumps(data))
-            g = Ground(p, 0)
+            g = Ground(p, False)
             np.testing.assert_allclose(g.project(320, 300), [0, 90], atol=.01)
             self.assertIsNone(g.project(10, 10))
-            with self.assertRaises(ValueError): Ground(p, 180)
-            with self.assertRaises(ValueError): Ground(p, 90)   # rotated camera needs new calibration
+            with self.assertRaises(ValueError): Ground(p, True)
         for point in points: point['uv'] = [100, 100]
         with self.assertRaises(ValueError): fit_ground(points, (640, 480))
-
-    def test_rotation_config_and_portrait_frame(self):
-        cfg = json.loads((HERE/'config.json').read_text())
-        for rotate, size in ((0, (640, 480)), (90, (480, 640)), (180, (640, 480)), (270, (480, 640))):
-            cfg.update(rotate=rotate, rotate180=False)
-            self.assertEqual(validate(dict(cfg))['rotate'], rotate)
-            self.assertEqual(frame_size(rotate), size)
-        cfg.update(rotate=45)
-        with self.assertRaises(ValueError): validate(dict(cfg))
-        cfg.update(rotate=90, rotate180=True)
-        with self.assertRaises(ValueError): validate(dict(cfg))
-        old = {k: v for k, v in cfg.items() if k != 'rotate'}; old['rotate180'] = True
-        self.assertEqual(validate(old)['rotate'], 180)          # old configs keep working
-        # 90 deg clockwise: a mark at the sensor's top-left lands at the portrait image's top-right.
-        sensor = np.zeros((480, 640, 3), np.uint8); sensor[10:30, 10:30] = [10, 10, 240]
-        portrait = rotate_frame(sensor, 90)
-        self.assertEqual(portrait.shape[:2], (640, 480))
-        t = Vision(self.cfg, hsv=[0, 240, 240]).detect(portrait)
-        self.assertEqual(len(t), 1); self.assertGreater(t[0].center[0], 440); self.assertLess(t[0].center[1], 40)
-        # Portrait calibration round-trip.
-        points = [{'uv': [u, v], 'xy_mm': [(u-240)/2, (640-v)/2]}
-                  for u, v in [(60, 100), (420, 100), (60, 600), (420, 600), (150, 350), (330, 350)]]
-        with tempfile.TemporaryDirectory() as d:
-            p = Path(d)/'ground.json'; p.write_text(json.dumps(fit_ground(points, (480, 640), 90)))
-            np.testing.assert_allclose(Ground(p, 90).project(240, 440), [0, 100], atol=.01)
-            with self.assertRaises(ValueError): Ground(p, 0)
 
     def test_hsv_is_independent_of_static_background(self):
         vision = Vision(self.cfg, hsv=[0, 240, 240])

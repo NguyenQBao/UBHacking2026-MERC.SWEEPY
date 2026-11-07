@@ -1,9 +1,9 @@
-"""Click >=6 measured ground points on an unannotated camera snapshot (640x480, or 480x640 when rotated 90/270)."""
+"""Click >=6 measured ground points on an unannotated 640x480 camera snapshot."""
 import argparse
 import json
 from pathlib import Path
 import cv2
-from vision import fit_ground, frame_size
+from vision import fit_ground
 
 
 def main():
@@ -11,16 +11,12 @@ def main():
     p.add_argument('--image', required=True)
     p.add_argument('--points', default='points.example.json')
     p.add_argument('--out', default='ground.json')
-    p.add_argument('--rotate', type=int, choices=(0, 90, 180, 270), default=0,
-                   help='Same value as config.json rotate; the snapshot is already rotated by run.py')
-    p.add_argument('--rotate180', action='store_true', help='Old alias for --rotate 180')
+    p.add_argument('--rotate180', action='store_true', help='Snapshot is already rotated by run.py')
     p.add_argument('--no-gui', action='store_true', help='All uv coordinates already entered in JSON')
     args = p.parse_args()
-    rotate = 180 if args.rotate180 else args.rotate
-    width, height = frame_size(rotate)
     frame = cv2.imread(args.image)
-    if frame is None or frame.shape[:2] != (height, width):
-        raise ValueError(f'Use unannotated /raw.jpg at {width}x{height} (rotate={rotate})')
+    if frame is None or frame.shape[:2] != (480, 640):
+        raise ValueError('Use unannotated /raw.jpg at 640x480')
     points = json.loads(Path(args.points).read_text())
     if not args.no_gui:
         for point in points:
@@ -49,7 +45,7 @@ def main():
                 point['uv'] = uv
         finally:
             cv2.destroyAllWindows()
-    data = fit_ground(points, (width, height), rotate)
+    data = fit_ground(points, (640, 480), args.rotate180)
     out = Path(args.out)
     if out.exists():
         raise ValueError('Output exists: choose another --out, preserve previous calibration')

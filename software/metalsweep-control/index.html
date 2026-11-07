@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>METALSWEEP Control</title>
-<style>body{font:17px system-ui;max-width:950px;margin:24px auto;padding:0 18px;background:#eef3f5;color:#17303a}button{padding:14px;margin:5px;font-size:17px;border:1px solid #9aa;border-radius:8px;cursor:pointer}#stop{background:#a71925;color:white;font-weight:bold;font-size:22px}img{max-width:100%;max-height:70vh;background:#123;min-height:100px}pre{white-space:pre-wrap;background:white;padding:15px}#error{color:#9d1722}a{color:#075866}
+<style>body{font:17px system-ui;max-width:950px;margin:24px auto;padding:0 18px;background:#eef3f5;color:#17303a}button{padding:14px;margin:5px;font-size:17px;border:1px solid #9aa;border-radius:8px;cursor:pointer}#stop{background:#a71925;color:white;font-weight:bold;font-size:22px}img{width:100%;max-width:640px;background:#123;min-height:100px}pre{white-space:pre-wrap;background:white;padding:15px}#error{color:#9d1722}a{color:#075866}
 section{background:white;border-radius:10px;padding:12px 16px;margin:14px 0}h2{font-size:19px;margin:4px 0 10px}
 .row{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;margin:8px 0}input[type=range]{width:100%}.val{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
 .badge{display:inline-block;padding:3px 10px;border-radius:12px;background:#ccd;font-weight:600}.on{background:#1f8a3a;color:white}.off{background:#ccd}.na{background:#e7b3b8}
@@ -59,7 +59,7 @@ document.querySelector('#recommended').onclick=async()=>{for(const k of sliders)
 addEventListener('blur',()=>command('stop'));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)command('stop')});
 setInterval(()=>{if(!document.hidden&&document.hasFocus())command('heartbeat')},500);
-view.onclick=e=>{const r=view.getBoundingClientRect();document.querySelector('#pixel').textContent=`u=${Math.round((e.clientX-r.left)*view.naturalWidth/r.width)}, v=${Math.round((e.clientY-r.top)*view.naturalHeight/r.height)}`};
+view.onclick=e=>{const r=view.getBoundingClientRect();document.querySelector('#pixel').textContent=`u=${Math.round((e.clientX-r.left)*640/r.width)}, v=${Math.round((e.clientY-r.top)*480/r.height)}`};
 function render(s){
   if(s.settings&&!loaded){sliders.forEach(k=>{document.getElementById(k).value=s.settings[k];show(k)});loaded=true}
   const b=document.querySelector('#brushState');

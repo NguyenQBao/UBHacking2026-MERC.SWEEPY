@@ -55,13 +55,6 @@ def validate(cfg):
                 'ground_calibration_verified', 'speed_calibration_verified', 'supervised_clear_floor', 'rotate180', 'relay_active_high'):
         if type(cfg[key]) is not bool:
             raise ValueError(f'{key} must be boolean')
-    # Camera rotation in degrees clockwise; 90/270 give a 480x640 portrait image.
-    # Older configs only have rotate180, which maps to 0 or 180.
-    cfg.setdefault('rotate', 180 if cfg['rotate180'] else 0)
-    if type(cfg['rotate']) is not int or cfg['rotate'] not in (0, 90, 180, 270):
-        raise ValueError('rotate must be 0, 90, 180 or 270')
-    if cfg['rotate180'] and cfg['rotate'] != 180:
-        raise ValueError('rotate180=true conflicts with rotate; set rotate180=false and use rotate only')
     if cfg['brush_mode'] not in ('ccm6n_relay', 'hbridge'):
         raise ValueError('brush_mode must be ccm6n_relay or hbridge')
     pins = []
