@@ -20,3 +20,14 @@ python generate.py
 ```
 
 如果相机装反（排线朝上），把config.json中`rotate180`改为true即可，不必改模型。
+
+## 多厚度试打（PrusaSlicer）
+
+[camera-slot-mount-variants.3mf](camera-slot-mount-variants.3mf)：一盘4件，插槽厚1.2 / 1.6 / 2.0 / 2.4mm（单件STL在[variants](variants)），每件已设置“自动支撑、仅从热床生成”。3MF只含模型和逐件设置，不含打印机配置，打开后沿用PrusaSlicer当前所选的打印机/耗材/打印预设（按Prusa CORE One 250×220热床居中排列）。
+
+```bash
+python generate.py --slot 1.2 --out variants/camera-slot-mount-slot1.2mm.stl   # 其余厚度同理
+python make_plate.py
+```
+
+试插后选最合适的一件，其余回收。

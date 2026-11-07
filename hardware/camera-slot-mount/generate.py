@@ -89,7 +89,14 @@ def write_stl(m, path):
 
 
 if __name__ == '__main__':
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--slot', type=float, help='board slot thickness in mm (overrides PCB_T + FIT)')
+    ap.add_argument('--out', help='output STL path')
+    args = ap.parse_args()
+    if args.slot:
+        PCB_T = args.slot - FIT
     part = build()
-    out = Path(__file__).with_name('camera-slot-mount.stl')
+    out = Path(args.out) if args.out else Path(__file__).with_name('camera-slot-mount.stl')
     lo, hi, n = write_stl(part, out)
     print(f'{out.name}: {n} triangles, size {np.round(hi-lo, 1).tolist()} mm, volume {part.volume():.0f} mm3, genus {part.genus()}')
