@@ -12,7 +12,7 @@ from manifold3d import Manifold
 # ---- Camera board (default = common 25 x 24 mm OV5647 board) ----
 PCB_W = 25.0          # board width (mm), across
 PCB_H = 24.0          # board height (mm), slide-in direction
-PCB_T = 1.0           # board thickness (mm)
+PCB_T = 1.6           # board thickness (mm); slot = PCB_T + FIT = 2.0 mm
 BACK_CLEAR = 6.0      # space behind the board for back-side parts (connector, 4-pin socket)
 FIT = 0.4             # printing clearance added to width/height/thickness
 LIP = 2.0             # how far the front lip overlaps each board edge
