@@ -69,7 +69,8 @@ class Tests(unittest.TestCase):
         self.arm()
         a = self.observe((0, 55))
         self.assertEqual(a.label, 'BRUSH_SPINUP'); self.assertEqual(a.left, 0)
-        self.assertAlmostEqual(self.motors.sequence[0].seconds, .65)
+        c = self.cfg  # final push = (Y + entry margin) / measured forward speed
+        self.assertAlmostEqual(self.motors.sequence[0].seconds, (55+c['entry_margin_mm'])/c['forward_mm_per_second'])
         self.clock.now = self.motors.until+.01; self.motors.expire()
         self.assertEqual(self.motors.label, 'SWEEP'); self.assertGreater(self.motors.values[2], 0)
         self.clock.now = self.motors.until+.01; self.motors.expire()
