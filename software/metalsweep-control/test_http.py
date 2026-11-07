@@ -22,7 +22,8 @@ class HTTPTests(unittest.TestCase):
     def test_offline_camera_browser_single_cycle(self):
         here = Path(__file__).resolve().parent
         cfg = json.loads((here/'config.json').read_text())
-        cfg.update(directions_verified=True, ground_calibration_verified=True, speed_calibration_verified=True, supervised_clear_floor=True)
+        cfg.update(directions_verified=True, ground_calibration_verified=True, speed_calibration_verified=True, supervised_clear_floor=True,
+                   rotate=0, rotate180=False)
         points = [{'uv': [u, v], 'xy_mm': [(u-320)/2, (480-v)/2]}
                   for u, v in [(100, 100), (500, 100), (100, 400), (500, 400), (200, 250), (400, 250)]]
         with tempfile.TemporaryDirectory() as directory:

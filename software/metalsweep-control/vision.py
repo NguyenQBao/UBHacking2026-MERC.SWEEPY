@@ -7,7 +7,19 @@ import numpy as np
 from control import Target
 
 
-def fit_ground(points, size, rotate180=False):
+ROTATIONS = {90: cv2.ROTATE_90_CLOCKWISE, 180: cv2.ROTATE_180, 270: cv2.ROTATE_90_COUNTERCLOCKWISE}
+
+
+def frame_size(rotate):
+    """(width, height) of the image after rotation; the sensor always delivers 640x480."""
+    return (480, 640) if rotate in (90, 270) else (640, 480)
+
+
+def rotate_frame(frame, rotate):
+    return cv2.rotate(frame, ROTATIONS[rotate]) if rotate else frame
+
+
+def fit_ground(points, size, rotate=0):
     uv = np.array([p['uv'] for p in points], dtype=np.float64)
     xy = np.array([p['xy_mm'] for p in points], dtype=np.float64)
     if uv.shape != (len(points), 2) or xy.shape != uv.shape or len(points) < 6:
@@ -27,17 +39,18 @@ def fit_ground(points, size, rotate180=False):
     error = float(np.linalg.norm(predicted-xy, axis=1).max())
     if error > 15:
         raise ValueError(f'Calibration residual {error:.1f} mm >15; check points')
-    return dict(size=list(size), rotate180=rotate180, points=points, H=H.tolist(),
+    return dict(size=list(size), rotate=rotate, rotate180=rotate == 180, points=points, H=H.tolist(),
                 max_fit_error_mm=error)
 
 
 class Ground:
-    def __init__(self, path, rotate180):
+    def __init__(self, path, rotate):
         data = json.loads(Path(path).read_text())
+        stored = data.get('rotate', 180 if data.get('rotate180') else 0)
         # Recompute from correspondences, do not trust an arbitrary stored H.
-        fit = fit_ground(data['points'], data['size'], data['rotate180'])
-        if fit['size'] != [640, 480] or fit['rotate180'] != rotate180:
-            raise ValueError('Calibration resolution/rotation differs from live camera')
+        fit = fit_ground(data['points'], data['size'], stored)
+        if fit['size'] != list(frame_size(rotate)) or stored != rotate:
+            raise ValueError('Calibration resolution/rotation differs from live camera; recalibrate after rotating')
         self.H = np.array(fit['H'])
         self.hull = cv2.convexHull(np.array([p['uv'] for p in data['points']], np.float32))
 
@@ -85,11 +98,12 @@ class Vision:
                         x, y, w, ht = cv2.boundingRect(contour)
                         boxes.append(([x, y, x+w, y+ht], 1.))  # 1 means matched, NOT learned confidence
         targets = []
+        height, width = frame.shape[:2]
         for box, score in boxes:
             if len(box) != 4 or not all(math.isfinite(v) for v in box):
                 continue
             a, b, c, d = box
-            if not 0 <= a < c <= 640 or not 0 <= b < d <= 480:
+            if not 0 <= a < c <= width or not 0 <= b < d <= height:
                 continue
             xy = self.ground.project((a+c)/2, d) if self.ground else None
             targets.append(Target(tuple(box), float(score), xy))
