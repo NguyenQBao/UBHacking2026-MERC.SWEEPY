@@ -41,13 +41,15 @@ def validate(cfg):
         'observation_timeout': (.2, 5), 'operator_timeout': (1, 5),
         'max_cycle_seconds': (5, 120), 'max_steps': (1, 100),
         'stable_frames': (2, 10), 'imgsz': (64, 1280), 'ground_margin_px': (0, 800),
+        'max_targets': (1, 50),
     }
     cfg.setdefault('ground_margin_px', 0)
+    cfg.setdefault('max_targets', 10)
     for key, (low, high) in bounds.items():
         v = cfg[key]
         if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not low <= v <= high:
             raise ValueError(f'Invalid {key}: must be {low}..{high}')
-    for key in ('max_steps', 'stable_frames', 'imgsz'):
+    for key in ('max_steps', 'stable_frames', 'imgsz', 'max_targets'):
         if type(cfg[key]) is not int:
             raise ValueError(f'{key} must be integer')
     if cfg['center_tolerance_mm'] >= cfg['half_brush_mm'] or cfg['collect_y_mm'] >= cfg['max_y_mm']:
@@ -84,8 +86,21 @@ def validate(cfg):
     return cfg
 
 
+# (frequency Hz, seconds); 0 Hz = rest. Birthday line from the UBHacking2026 rover buzzer.py.
+SOUNDS = {
+    'test': [(523, .12), (0, .04), (659, .12), (0, .04), (784, .25)],
+    'success': [(784, .1), (0, .03), (988, .1), (0, .03), (1319, .3)],
+    'miss': [(392, .2), (0, .05), (262, .4)],
+    'all_clear': [(523, .1), (659, .1), (784, .1), (0, .05), (1047, .45)],
+    'birthday': [(392, .25), (392, .25), (440, .5), (392, .5), (523, .5), (494, 1.0)],
+}
+
+
 class Buzzer:
-    """One short beep when debris first appears; GPIO only with hardware=True."""
+    """Detection beep plus short named melodies; GPIO only with hardware=True.
+
+    Passive piezo: PWM at the note frequency. Active buzzer: on/off rhythm only (fixed pitch).
+    """
     def __init__(self, cfg, hardware=False, clock=time.monotonic, factory=None):
         b = cfg['buzzer']
         self.cfg, self.clock = b, clock
@@ -93,6 +108,11 @@ class Buzzer:
         self.seen = False
         self.last = -1e9
         self.beeps = 0
+        self.sound_seq = 0
+        self.sound_name = None
+        self.lock = threading.Lock()
+        self.cancel = threading.Event()
+        self.playing = False
         if hardware:
             if factory is None:
                 from gpiozero import DigitalOutputDevice, PWMOutputDevice
@@ -100,22 +120,68 @@ class Buzzer:
                                    if b['passive'] else DigitalOutputDevice(b['pin'], active_high=b['active_high'], initial_value=False))
             self.device = factory()
 
+    def _tone(self, hz):
+        if self.device is None:
+            return
+        if hz <= 0:
+            self.device.off()
+        elif self.cfg['passive']:
+            self.device.frequency = hz
+            self.device.value = .5
+        else:
+            self.device.value = 1
+
     def update(self, detected):
         """Call once per frame; beeps on the rising edge (no debris -> debris), rate-limited."""
         now = self.clock()
-        if detected and not self.seen and now-self.last >= self.cfg['cooldown_seconds']:
+        if detected and not self.seen and now-self.last >= self.cfg['cooldown_seconds'] and not self.playing:
             self.last = now
             self.beeps += 1
             if self.device is not None:
-                # Passive buzzer needs a 2 kHz square wave (50% duty); active buzzer just needs ON.
-                self.device.value = .5 if self.cfg['passive'] else 1
+                with self.lock:
+                    self._tone(2000)
                 timer = threading.Timer(self.cfg['beep_seconds'], self.device.off)
                 timer.daemon = True
                 timer.start()
         self.seen = bool(detected)
         return self.beeps
 
+    def play(self, name, wait=False):
+        """Play a named melody in the background; a new sound or stop() cuts the old one."""
+        if name not in SOUNDS:
+            raise ValueError('Unknown sound')
+        self.stop()
+        cancel = self.cancel = threading.Event()
+        self.sound_seq += 1
+        self.sound_name = name
+        self.playing = True
+        def run():
+            try:
+                for hz, seconds in SOUNDS[name]:
+                    if cancel.is_set():
+                        break
+                    with self.lock:
+                        self._tone(hz)
+                    cancel.wait(seconds)
+            except Exception as e:  # a buzzer fault must never reach the control loop
+                print(f'Buzzer error: {e}', flush=True)
+            finally:
+                with self.lock:
+                    if self.device is not None:
+                        self.device.off()
+                if self.cancel is cancel:
+                    self.playing = False
+        thread = threading.Thread(target=run, daemon=True)
+        thread.start()
+        if wait:
+            thread.join()
+        return self.sound_seq
+
+    def stop(self):
+        self.cancel.set()
+
     def close(self):
+        self.stop()
         if self.device is not None:
             try:
                 self.device.off()
@@ -268,7 +334,18 @@ class Controller:
         self.ready_at = 0
         self.started = 0
         self.steps = 0
+        self.mode = 'nearest'
+        self.collected = 0       # successful collections since the program started
+        self.run_collected = 0   # in the current Auto run
+        self.on_event = None     # callback(name) for sounds: success / miss / all_clear
         self.operator_seen = self.clock()
+
+    def _emit(self, name):
+        try:
+            if self.on_event:
+                self.on_event(name)
+        except Exception as e:  # sound must never affect motion control
+            print(f'Event callback error: {e}', flush=True)
 
     def heartbeat(self):
         with self.lock:
@@ -283,7 +360,9 @@ class Controller:
             self.previous = None
             self.stable = 0
 
-    def start(self, calibrated):
+    def start(self, calibrated, mode='nearest'):
+        if mode not in ('nearest', 'all'):
+            raise ValueError('mode must be nearest or all')
         with self.lock:
             self.stop()
             if not self.motors.brush_enabled:
@@ -296,6 +375,8 @@ class Controller:
             self.operator_seen = self.started = self.clock()
             self.ready_at = self.started
             self.steps = 0
+            self.mode = mode
+            self.run_collected = 0
             self.auto = True
             self.status = 'OBSERVE'
 
@@ -370,11 +451,35 @@ class Controller:
             if frame_id == getattr(self, 'last_frame', None):
                 return None
             self.last_frame = frame_id
-            if self.phase == 'VERIFY':
-                self.stop('VERIFY_CONTAINER_MANUALLY')
-                return None
             good = [t for t in targets if t.confidence >= c['confidence'] and t.ground is not None
                     and all(math.isfinite(v) for v in t.ground) and 0 < t.ground[1] <= c['max_y_mm']]
+            if self.phase == 'VERIFY':
+                # Success = nothing left in the push zone in front of the scoop after the sweep.
+                if any(t.ground[1] <= c['collect_y_mm'] for t in good):
+                    self._emit('miss')
+                    self.stop('VERIFY_MISSED')
+                    return None
+                self.collected += 1
+                self.run_collected += 1
+                if self.mode != 'all':
+                    self._emit('success')
+                    self.stop('COLLECTED')
+                    return None
+                if not good:
+                    self._emit('all_clear')
+                    self.stop('ALL_COLLECTED')
+                    return None
+                if self.run_collected >= c['max_targets']:
+                    self._emit('success')
+                    self.stop('MAX_TARGETS_REACHED')
+                    return None
+                self._emit('success')
+                # Next target: fresh per-target limits, choose the nearest again.
+                self.phase = 'OBSERVE'
+                self.previous = None
+                self.stable = 0
+                self.started = now
+                self.steps = 0
             if not good:
                 self.stop('TARGET_LOST_OR_OUTSIDE_CALIBRATION')
                 return None

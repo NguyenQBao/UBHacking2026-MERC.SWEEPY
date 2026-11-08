@@ -7,7 +7,7 @@ section{background:white;border-radius:10px;padding:12px 16px;margin:14px 0}h2{f
 select{font-size:17px;padding:10px;border-radius:8px}.rec{border-collapse:collapse;font-size:14px;margin:8px 0;width:100%}.rec th,.rec td{border-bottom:1px solid #dde;padding:4px 6px;text-align:left}kbd{border:1px solid #9aa;border-radius:4px;padding:0 5px;background:#f6f8f9}.hint{color:#567;font-size:14px;margin:4px 0}#saved{color:#1f8a3a;margin-left:8px}
 @media(max-width:560px){.row{grid-template-columns:1fr 60px}.row label{grid-column:1/-1}}</style>
 <h1>Camera · Wheels · Brush</h1>
-<p>Simulation mode by default. Each click runs one short pulse. Auto collects one target only, then stops for you to check. Keep this page in the foreground.</p>
+<p>Simulation mode by default. Each click runs one short pulse. Keep this page in the foreground during Auto.</p>
 <button id="stop" data-cmd="stop">STOP ALL / Space</button>
 <p id="error"></p><img id="view" alt="Waiting for camera"><p id="pixel">Click the image to see pixel coordinates for calibration.</p>
 
@@ -36,14 +36,30 @@ select{font-size:17px;padding:10px;border-radius:8px}.rec{border-collapse:collap
 <p class="hint">Wheels stay off during the brush test. Listen for the relay click, then check the brush spins the right way. STOP / Space cuts it at once.</p>
 </section>
 
-<section><h2>Auto</h2><button data-cmd="auto">Collect one target</button>
+<section><h2>Auto</h2>
+<button data-auto="nearest">Auto collect nearest</button><button data-auto="all">Auto collect all in view</button>
+<p>Status: <span id="autoStatus" class="badge">–</span> · Collected this run: <b id="runCount">0</b> · Total: <b id="totalCount">0</b></p>
+<p class="hint"><b>Nearest</b> collects the closest target, checks it is gone, then stops. <b>All in view</b> repeats nearest-first until nothing is left in range (or the max_targets limit). A target still in front of the scoop after the sweep counts as a miss and stops Auto.</p>
 <p><a href="/raw.jpg" download="calibration.jpg">Save raw image for calibration</a></p></section>
+
+<section><h2>Sound</h2>
+<button data-sound="test">Test sound</button><button data-sound="success">Collected</button><button data-sound="miss">Missed</button><button data-sound="all_clear">All clear</button><button data-sound="birthday">Happy Birthday</button>
+<p><label><input type="checkbox" id="localSound" checked> Also play on this computer</label> <span id="buzzerType" class="hint"></span></p>
+<p class="hint">Collected / Missed / All clear play automatically during Auto. STOP cuts the sound too.</p>
+</section>
 <pre id="state">Connecting…</pre>
 <script>
 const token='__TOKEN__', view=document.querySelector('#view'), error=document.querySelector('#error');
 async function send(body){try{const r=await fetch('/command',{method:'POST',headers:{'Content-Type':'application/json','X-Control-Token':token},body:JSON.stringify(body),signal:AbortSignal.timeout(1500)});const d=await r.json();if(!r.ok)throw Error(d.error);error.textContent='';return true}catch(e){error.textContent=e.message;return false}}
 const command=c=>send({command:c});
 document.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=>command(b.dataset.cmd));
+document.querySelectorAll('[data-auto]').forEach(b=>b.onclick=()=>{unlockAudio();send({command:'auto',mode:b.dataset.auto})});
+document.querySelectorAll('[data-sound]').forEach(b=>b.onclick=()=>{unlockAudio();send({command:'sound',name:b.dataset.sound})});
+let audio=null,sounds={},soundSeq=null;
+function unlockAudio(){try{audio=audio||new AudioContext();audio.resume()}catch(e){}}
+function playLocal(name){const notes=sounds[name];if(!audio||!notes||!document.querySelector('#localSound').checked)return;
+  let t=audio.currentTime+.02;for(const [hz,sec] of notes){if(hz>0){const o=audio.createOscillator(),g=audio.createGain();o.type='square';o.frequency.value=hz;
+  g.gain.setValueAtTime(.06,t);g.gain.setValueAtTime(0,t+sec*.95);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+sec)}t+=sec}}
 document.querySelector('#brushTest').onclick=()=>send({command:'brush_test',seconds:Number(document.querySelector('#brushSeconds').value)});
 document.querySelector('#save').onclick=async()=>{if(await send({command:'save'})){const s=document.querySelector('#saved');s.textContent='Saved to config.json';setTimeout(()=>s.textContent='',3000)}};
 const sliders=['wheel_speed','move_seconds','turn_speed','turn_seconds'];
@@ -66,6 +82,13 @@ function render(s){
   if(!s.brush_enabled){b.textContent='DISABLED (--wheels-only)';b.className='badge na'}
   else{const on=s.motors&&s.motors[2]!==0;b.textContent=on?'ON':'OFF';b.className='badge '+(on?'on':'off')}
   document.querySelector('#brushMode').textContent='mode: '+s.brush_mode;
+  if(s.sounds)sounds=s.sounds;
+  if(soundSeq!==null&&s.sound_seq>soundSeq)playLocal(s.sound_name);
+  soundSeq=s.sound_seq;
+  document.querySelector('#buzzerType').textContent=s.buzzer_passive?'Car buzzer: passive (plays melodies)':'Car buzzer: active (fixed pitch, rhythm only)';
+  const a=document.querySelector('#autoStatus');a.textContent=(s.auto?'RUNNING '+(s.mode==='all'?'(all)':'(nearest)')+' · ':'')+s.status;
+  a.className='badge '+(s.auto?'on':/COLLECTED/.test(s.status)?'on':/MISSED|LOST|LIMIT|TIMEOUT|ERROR/.test(s.status)?'na':'off');
+  document.querySelector('#runCount').textContent=s.run_collected||0;document.querySelector('#totalCount').textContent=s.collected||0;
   ['brushTest','brushSeconds'].forEach(id=>document.getElementById(id).disabled=!s.brush_enabled);
   document.querySelector('[data-cmd=brush]').disabled=!s.brush_enabled;
 }

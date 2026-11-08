@@ -9,7 +9,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import cv2
-from control import Buzzer, Controller, Motors, validate
+from control import SOUNDS, Buzzer, Controller, Motors, validate
 from vision import Ground, Vision
 
 HERE = Path(__file__).resolve().parent
@@ -20,6 +20,7 @@ class App:
         self.config_path = config_path
         self.buzzer = buzzer or Buzzer(cfg)
         self.controller = Controller(cfg, motors)
+        self.controller.on_event = self.buzzer.play
         self.cfg, self.vision = cfg, vision
         self.lock = threading.Lock()
         self.jpeg = b''
@@ -152,7 +153,10 @@ class Handler(BaseHTTPRequestHandler):
                     state = dict(app.state, status=app.controller.status,
                                  motors=list(app.controller.motors.values), auto=app.controller.auto,
                                  motor_phase=app.controller.motors.label,
-                                 settings=app.controller.settings())
+                                 settings=app.controller.settings(), mode=app.controller.mode,
+                                 collected=app.controller.collected, run_collected=app.controller.run_collected,
+                                 sound_seq=app.buzzer.sound_seq, sound_name=app.buzzer.sound_name,
+                                 buzzer_passive=app.cfg['buzzer']['passive'], sounds=SOUNDS)
                     self.reply(state)
                 else:
                     raw = app.jpeg if self.path == '/frame.jpg' else getattr(app, 'raw', b'')
@@ -177,6 +181,9 @@ class Handler(BaseHTTPRequestHandler):
             c = app.controller
             if command == 'stop':
                 c.stop('OPERATOR_STOP')
+                app.buzzer.stop()
+            elif command == 'sound':
+                app.buzzer.play(body['name'])
             elif command == 'set':
                 c.set_setting(body['key'], body['value'])
             elif command == 'brush_test':
@@ -189,7 +196,7 @@ class Handler(BaseHTTPRequestHandler):
                 with app.lock:
                     if app.state.get('error') or not app.state.get('frame_id'):
                         raise ValueError('Camera is not ready')
-                c.start(app.vision.ground is not None)
+                c.start(app.vision.ground is not None, body.get('mode', 'nearest'))
             else:
                 c.manual(command)
             self.reply({'ok': True, 'status': c.status})

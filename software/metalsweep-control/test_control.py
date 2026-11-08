@@ -76,10 +76,56 @@ class Tests(unittest.TestCase):
         self.clock.now = self.motors.until+.01; self.motors.expire()
         self.assertEqual(self.motors.label, 'BRUSH_TAIL'); self.assertEqual(self.motors.values[0], 0)
         self.ready()
-        self.observe((0, 55), 1)
-        self.assertEqual(self.controller.status, 'VERIFY_CONTAINER_MANUALLY')
+        self.observe((0, 55), 1)  # still in front of the scoop after the sweep = miss
+        self.assertEqual(self.controller.status, 'VERIFY_MISSED')
         self.assertEqual(self.motors.values, (0, 0, 0))
         self.assertFalse(self.controller.auto)
+
+    def sweep(self, xy, n=3):
+        a = self.observe(xy, n)
+        self.assertEqual(a.label, 'BRUSH_SPINUP')
+        self.clock.now = self.motors.until+.01; self.motors.expire()
+        self.clock.now = self.motors.until+.01; self.motors.expire()
+        self.ready()
+
+    def tick(self, targets):
+        self.controller.heartbeat(); self.frame += 1
+        r = self.controller.tick([Target((300+40*i, 200, 330+40*i, 230), .9, xy) for i, xy in enumerate(targets)], self.clock(), self.frame)
+        self.clock.advance(.05)
+        return r
+
+    def test_nearest_mode_success_sound_and_stop(self):
+        events = []
+        self.controller.on_event = events.append
+        self.arm(); self.sweep((0, 55))
+        self.tick([(0, 600)])  # only a far target remains: pushed one is gone
+        self.assertEqual(self.controller.status, 'COLLECTED')
+        self.assertEqual(events, ['success']); self.assertFalse(self.controller.auto)
+        self.assertEqual((self.controller.collected, self.controller.run_collected), (1, 1))
+
+    def test_all_mode_collects_until_clear(self):
+        events = []
+        self.controller.on_event = events.append
+        for name in ('directions_verified', 'ground_calibration_verified', 'speed_calibration_verified', 'supervised_clear_floor'):
+            self.cfg[name] = True
+        self.controller.start(True, 'all')
+        self.sweep((0, 55))
+        a = self.tick([(0, 150)])  # first one gone; next nearest becomes the new target
+        self.assertTrue(self.controller.auto); self.assertEqual(events, ['success'])
+        self.assertEqual(self.controller.status, 'STABLE 1/3'); self.assertIsNone(a)
+        self.sweep((0, 50), 2)  # already 1/3 stable from the verify frame
+        self.tick([])
+        self.assertEqual(self.controller.status, 'ALL_COLLECTED')
+        self.assertEqual(events, ['success', 'all_clear']); self.assertEqual(self.controller.run_collected, 2)
+        with self.assertRaises(ValueError): self.controller.start(True, 'everything')
+
+    def test_all_mode_respects_max_targets(self):
+        self.cfg['max_targets'] = 1
+        for name in ('directions_verified', 'ground_calibration_verified', 'speed_calibration_verified', 'supervised_clear_floor'):
+            self.cfg[name] = True
+        self.controller.start(True, 'all'); self.sweep((0, 55))
+        self.tick([(0, 150)])
+        self.assertEqual(self.controller.status, 'MAX_TARGETS_REACHED'); self.assertFalse(self.controller.auto)
 
     def test_final_push_too_long_refuses_to_move(self):
         self.cfg['forward_mm_per_second'] = 20
@@ -249,6 +295,31 @@ class BuzzerTests(unittest.TestCase):
         b.update(False); t[0] = 2.5; b.update(True); self.assertEqual(b.beeps, 2)  # inside cooldown
         cfg['buzzer']['pin'] = 17
         with self.assertRaises(ValueError): _v(cfg)
+
+    def test_named_sounds_passive_pwm_and_stop(self):
+        import json as _j
+        from pathlib import Path as _P
+        from control import SOUNDS, Buzzer, validate as _v
+        cfg = _v(_j.loads(_P(__file__).with_name('config.json').read_text()))
+        cfg['buzzer']['passive'] = True
+        log = []
+        class Dev:
+            value = 0
+            frequency = 0
+            def __setattr__(self, k, v):
+                object.__setattr__(self, k, v)
+                if k == 'frequency': log.append(v)
+            def off(self): self.value = 0
+            def close(self): pass
+        dev = Dev()
+        b = Buzzer(cfg, hardware=True, factory=lambda: dev)
+        b.play('success', wait=True)
+        self.assertEqual(log, [hz for hz, _ in SOUNDS['success'] if hz])
+        self.assertEqual(dev.value, 0); self.assertEqual((b.sound_seq, b.sound_name), (1, 'success'))
+        self.assertFalse(b.playing)
+        with self.assertRaises(ValueError): b.play('nope')
+        b.play('birthday'); b.stop(); time.sleep(.05)
+        self.assertEqual(dev.value, 0); self.assertFalse(b.playing)
 
 
 if __name__ == '__main__': unittest.main()

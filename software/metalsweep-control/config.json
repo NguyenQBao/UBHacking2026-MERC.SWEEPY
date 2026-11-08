@@ -38,5 +38,6 @@
   "stable_frames": 3,
   "imgsz": 320,
   "ground_margin_px": 0,
+  "max_targets": 10,
   "rotate180": false
 }

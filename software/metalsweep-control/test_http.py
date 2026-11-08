@@ -79,9 +79,17 @@ class HTTPTests(unittest.TestCase):
                 while time.monotonic() < deadline:
                     call('/command', 'heartbeat', token)
                     state = json.loads(call('/state')); statuses.add(state['motor_phase'])
-                    if state['status'] == 'VERIFY_CONTAINER_MANUALLY': break
+                    if state['status'] == 'VERIFY_MISSED': break
                     time.sleep(.05)
-                self.assertEqual(state['status'], 'VERIFY_CONTAINER_MANUALLY', statuses)
+                # The still image never changes, so the target is still in front of the scoop: a miss.
+                self.assertEqual(state['status'], 'VERIFY_MISSED', statuses)
+                self.assertEqual(state['sound_name'], 'miss'); self.assertIn('success', state['sounds'])
+                conn = http.client.HTTPConnection('127.0.0.1', port, timeout=1)
+                conn.request('POST', '/command', json.dumps({'command': 'sound', 'name': 'test'}), headers)
+                r = conn.getresponse(); self.assertEqual(r.status, 200, r.read())
+                conn.request('POST', '/command', json.dumps({'command': 'sound', 'name': 'nope'}), headers)
+                r = conn.getresponse(); self.assertEqual(r.status, 400, r.read()); conn.close()
+                self.assertEqual(json.loads(call('/state'))['sound_name'], 'test')
                 self.assertTrue({'BRUSH_SPINUP', 'SWEEP', 'BRUSH_TAIL'}.issubset(statuses), statuses)
                 self.assertEqual(state['motors'], [0, 0, 0]); self.assertTrue(state['simulated'])
             finally:
