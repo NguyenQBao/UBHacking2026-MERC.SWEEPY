@@ -37,5 +37,6 @@
   "max_steps": 30,
   "stable_frames": 3,
   "imgsz": 320,
+  "ground_margin_px": 0,
   "rotate180": false
 }

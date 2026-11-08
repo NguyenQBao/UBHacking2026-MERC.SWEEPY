@@ -214,6 +214,7 @@ class Tests(unittest.TestCase):
             g = Ground(p, False)
             np.testing.assert_allclose(g.project(320, 300), [0, 90], atol=.01)
             self.assertIsNone(g.project(10, 10))
+            self.assertIsNotNone(Ground(p, False, margin_px=800).project(10, 10))
             with self.assertRaises(ValueError): Ground(p, True)
         for point in points: point['uv'] = [100, 100]
         with self.assertRaises(ValueError): fit_ground(points, (640, 480))

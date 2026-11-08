@@ -32,7 +32,7 @@ def fit_ground(points, size, rotate180=False):
 
 
 class Ground:
-    def __init__(self, path, rotate180):
+    def __init__(self, path, rotate180, margin_px=0):
         data = json.loads(Path(path).read_text())
         # Recompute from correspondences, do not trust an arbitrary stored H.
         fit = fit_ground(data['points'], data['size'], data['rotate180'])
@@ -40,9 +40,11 @@ class Ground:
             raise ValueError('Calibration resolution/rotation differs from live camera')
         self.H = np.array(fit['H'])
         self.hull = cv2.convexHull(np.array([p['uv'] for p in data['points']], np.float32))
+        # margin_px > 0 also accepts points this far outside the measured area (extrapolated, less exact).
+        self.margin = float(margin_px)
 
     def project(self, u, v):
-        if not all(math.isfinite(x) for x in (u, v)) or cv2.pointPolygonTest(self.hull, (float(u), float(v)), False) < 0:
+        if not all(math.isfinite(x) for x in (u, v)) or cv2.pointPolygonTest(self.hull, (float(u), float(v)), True) < -self.margin:
             return None
         p = self.H @ np.array([u, v, 1.])
         if abs(p[2]) < 1e-8:

@@ -223,7 +223,7 @@ def main():
             hsv = [int(x) for x in args.hsv.split(',')]
             if len(hsv) != 3 or not 0 <= hsv[0] <= 179 or any(not 0 <= x <= 255 for x in hsv[1:]):
                 raise ValueError('HSV must be H0..179,S0..255,V0..255')
-        ground = Ground(args.ground, cfg['rotate180']) if args.ground else None
+        ground = Ground(args.ground, cfg['rotate180'], cfg['ground_margin_px']) if args.ground else None
         os.environ.setdefault('YOLO_CONFIG_DIR', str(HERE/'runtime'/'ultralytics'))
         vision = Vision(cfg, args.model, hsv, ground)
         motors = Motors(cfg, hardware=args.hardware, brush_enabled=not args.wheels_only)

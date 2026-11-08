@@ -40,8 +40,9 @@ def validate(cfg):
         'half_brush_mm': (10, 500), 'match_pixels': (10, 200),
         'observation_timeout': (.2, 5), 'operator_timeout': (1, 5),
         'max_cycle_seconds': (5, 120), 'max_steps': (1, 100),
-        'stable_frames': (2, 10), 'imgsz': (64, 1280),
+        'stable_frames': (2, 10), 'imgsz': (64, 1280), 'ground_margin_px': (0, 800),
     }
+    cfg.setdefault('ground_margin_px', 0)
     for key, (low, high) in bounds.items():
         v = cfg[key]
         if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not low <= v <= high:
