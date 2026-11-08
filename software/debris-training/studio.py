@@ -46,20 +46,20 @@ class Store:
 
     def add(self, raw, session, split, source='camera'):
         if not isinstance(session, str) or not 1 <= len(session.strip()) <= 80:
-            raise ValueError('填写拍摄场景名称，例如 deskA_day；同一场景始终属于同一用途')
+            raise ValueError('Enter a scene name such as deskA_day; one scene always belongs to one split')
         session = session.strip()
         if split not in SPLITS:
-            raise ValueError('用途只能是 train / val / test')
+            raise ValueError('Split must be train / val / test')
         if not raw or len(raw) > MAX_UPLOAD:
-            raise ValueError('图片为空或超过12MB')
+            raise ValueError('Image is empty or larger than 12 MB')
         with Image.open(BytesIO(raw)) as original:
             if original.width * original.height > 16_000_000:
-                raise ValueError('图片超过1600万像素，请先缩小')
+                raise ValueError('Image exceeds 16 megapixels; shrink it first')
             if original.format not in ('JPEG', 'PNG', 'WEBP'):
-                raise ValueError('只支持 JPG、PNG、WEBP 图片')
+                raise ValueError('Only JPG, PNG and WEBP images are supported')
             image = ImageOps.exif_transpose(original).convert('RGB')
             if min(image.size) < 32:
-                raise ValueError('图片太小，至少32×32像素')
+                raise ValueError('Image too small; at least 32×32 pixels')
             buffer = BytesIO()
             image.save(buffer, format='JPEG', quality=95)
             content = buffer.getvalue()
@@ -69,9 +69,9 @@ class Store:
             data = self.read()
             records = data['records']
             if any(r['session'] == session and r['split'] != split for r in records):
-                raise ValueError('同一场景不能跨训练/验证/测试集；请换真实拍摄场景后再创建名称')
+                raise ValueError('A scene cannot span train/val/test; use a really different place before creating a new name')
             if any(r['sha256'] == digest for r in records):
-                raise ValueError('这张图片已存在，未重复加入')
+                raise ValueError('This image already exists; not added again')
             number = max((int(r['id']) for r in records), default=0) + 1
             while (self.root / 'images' / f'{number:06}.jpg').exists():
                 number += 1
@@ -88,27 +88,27 @@ class Store:
 
     def save(self, identifier, boxes, negative, revision):
         if not isinstance(boxes, list) or len(boxes) > 1000:
-            raise ValueError('框格式错误')
+            raise ValueError('Bad box format')
         if not boxes and negative is not True:
-            raise ValueError('没有框：请画框，或明确点击“确认无碎片”')
+            raise ValueError('No boxes: draw a box, or click "Confirm no debris" explicitly')
         if boxes and negative:
-            raise ValueError('有框的图片不能标为无碎片')
+            raise ValueError('A photo with boxes cannot be marked as no debris')
         with self.lock:
             data = self.read()
             record = next((r for r in data['records'] if r['id'] == identifier), None)
             if record is None:
-                raise ValueError('图片不存在')
+                raise ValueError('Image not found')
             if type(revision) is not int or revision != record['revision']:
-                raise ValueError('图片已被另一窗口修改，请刷新后重新标注')
+                raise ValueError('Image was changed in another window; refresh and label again')
             for box in boxes:
                 if not isinstance(box, list) or len(box) != 4 or any(
                     type(v) not in (int, float) or not math.isfinite(v) for v in box
                 ):
-                    raise ValueError('每个框必须是四个有限数字 x1,y1,x2,y2')
+                    raise ValueError('Each box must be four finite numbers x1,y1,x2,y2')
                 x1, y1, x2, y2 = box
                 if not (0 <= x1 < x2 <= record['width'] and 0 <= y1 < y2 <= record['height']
                         and x2 - x1 >= 2 and y2 - y1 >= 2):
-                    raise ValueError('框需在图片内，且宽高至少2像素')
+                    raise ValueError('Boxes must be inside the image and at least 2 pixels wide and high')
             record.update(boxes=boxes, reviewed=True, revision=revision + 1, updated=now())
             write_json(self.path, data)
             return record
@@ -138,14 +138,14 @@ class Jobs:
 
     def start(self, kind, epochs, device):
         if kind not in ('train', 'evaluate', 'export'):
-            raise ValueError('未知任务')
+            raise ValueError('Unknown task')
         if type(epochs) is not int or not 1 <= epochs <= 300:
-            raise ValueError('训练轮数应为1–300')
+            raise ValueError('Epochs must be 1-300')
         if device not in ('auto', 'cpu', 'mps', '0'):
-            raise ValueError('设备只能是 auto / cpu / mps / 0')
+            raise ValueError('Device must be auto / cpu / mps / 0')
         with self.lock:
             if self.process is not None and self.process.poll() is None:
-                raise ValueError('已有任务运行，请等待完成')
+                raise ValueError('A task is already running; wait for it to finish')
             folder = self.root / 'logs'
             folder.mkdir(exist_ok=True)
             self.log = folder / (datetime.now().strftime('%Y%m%d_%H%M%S_%f') + '.log')
@@ -194,18 +194,18 @@ class Handler(BaseHTTPRequestHandler):
         allowed = {f'127.0.0.1:{self.server.server_port}', f'localhost:{self.server.server_port}'}
         host = self.headers.get('Host', '')
         if host not in allowed:
-            raise ValueError('请通过 localhost 或 127.0.0.1 访问本地标注工具')
+            raise ValueError('Open this studio via localhost or 127.0.0.1')
         origin = self.headers.get('Origin')
         if origin and origin != 'http://' + host:
-            raise ValueError('不接受其他网页发来的修改请求')
+            raise ValueError('Changes from other web pages are not accepted')
 
     def import_collection(self, size):
         import tempfile
         from workflow import import_collection   # workflow imports studio; import lazily
         if self.headers.get('Content-Type') != 'application/zip':
-            raise ValueError('请选择采集后台导出的 ZIP')
+            raise ValueError('Choose the ZIP exported by the data collector')
         if not 0 < size <= 2 * 1024**3:
-            raise ValueError('采集包为空或超过2GB')
+            raise ValueError('Collection ZIP is empty or larger than 2 GB')
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / 'collection.zip'
             with path.open('wb') as out:
@@ -213,7 +213,7 @@ class Handler(BaseHTTPRequestHandler):
                 while left:
                     chunk = self.rfile.read(min(left, 1 << 20))
                     if not chunk:
-                        raise ValueError('上传中断')
+                        raise ValueError('Upload interrupted')
                     out.write(chunk)
                     left -= len(chunk)
             return import_collection(self.server.store.root, path)
@@ -236,12 +236,12 @@ class Handler(BaseHTTPRequestHandler):
 
     def camera(self):
         if not self.server.camera_url:
-            raise ValueError('未配置Pi相机；可先导入照片，或重启时指定 --camera-url')
+            raise ValueError('No Pi camera configured; import photos, or restart with --camera-url')
         opener = build_opener(ProxyHandler({}))
         with opener.open(self.server.camera_url, timeout=8) as response:
             raw = response.read(MAX_UPLOAD + 1)
         if len(raw) > MAX_UPLOAD:
-            raise ValueError('相机图片过大')
+            raise ValueError('Camera image too large')
         return raw
 
     def do_GET(self):
@@ -277,21 +277,21 @@ class Handler(BaseHTTPRequestHandler):
                 self.reply(self.import_collection(size))
                 return
             if not 0 < size <= MAX_UPLOAD:
-                raise ValueError('请求为空或超过12MB')
+                raise ValueError('Request is empty or larger than 12 MB')
             body = self.rfile.read(size)
             if parsed.path == '/api/import':
                 if self.headers.get('Content-Type') != 'application/octet-stream':
-                    raise ValueError('导入格式错误')
+                    raise ValueError('Bad import format')
                 query = parse_qs(parsed.query)
                 result = self.server.store.add(body, query.get('session', [''])[0],
                                                query.get('split', [''])[0],
                                                query.get('name', ['import'])[0])
             else:
                 if self.headers.get('Content-Type') != 'application/json':
-                    raise ValueError('需要JSON请求')
+                    raise ValueError('JSON request required')
                 data = json.loads(body)
                 if not isinstance(data, dict):
-                    raise ValueError('需要JSON对象')
+                    raise ValueError('JSON object required')
                 if parsed.path == '/api/capture':
                     result = self.server.store.add(self.camera(), data.get('session'), data.get('split'))
                 elif parsed.path == '/api/label':
@@ -317,26 +317,26 @@ def main():
     parser.add_argument('--camera-url', default='', help='Pi detector /raw.jpg URL')
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
-        parser.error('端口应为1–65535')
+        parser.error('port must be 1-65535')
     if args.camera_url and (urlsplit(args.camera_url).scheme not in ('http', 'https')
                             or not urlsplit(args.camera_url).hostname):
-        parser.error('camera-url 必须是 http/https 图片地址')
+        parser.error('camera-url must be an http/https image URL')
     root = Path(args.root).resolve()
     root.mkdir(parents=True, exist_ok=True)
     workspace_lock = (root / '.studio.lock').open('a')
     try:
         fcntl.flock(workspace_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
-        parser.exit(1, '这个workspace已有工作台运行，请返回原网页；不要同时启动两个编辑服务。\n')
+        parser.exit(1, 'A studio is already running for this workspace; go back to its page. Do not run two editors at once.\n')
     store = Store(root)
     with ThreadingHTTPServer(('127.0.0.1', args.port), Handler) as server:
         server.store, server.jobs, server.camera_url = store, Jobs(store.root), args.camera_url
-        print(f'在Mac浏览器打开 http://127.0.0.1:{args.port}\n照片与标注保存在 {store.root}', flush=True)
-        print('每50张自动分批；训练任务在后台运行。Ctrl+C退出网页服务，不会删除数据。', flush=True)
+        print(f'Open http://127.0.0.1:{args.port} in the Mac browser\nPhotos and labels are stored in {store.root}', flush=True)
+        print('Batches of 50 are made automatically; training runs in the background. Ctrl+C stops the web server without deleting data.', flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
-            print('\n网页已停止；已启动的训练任务继续运行，日志保存在 workspace/logs。')
+            print('\nWeb server stopped; any running training task continues, logs are in workspace/logs.')
 
 
 if __name__ == '__main__':

@@ -161,7 +161,7 @@ class WorkflowTests(unittest.TestCase):
         base = f'http://127.0.0.1:{server.server_port}'
         try:
             with opener.open(base + '/') as response:
-                self.assertIn('碎片训练工作台', response.read().decode())
+                self.assertIn('Debris Training Studio', response.read().decode())
             upload = Request(base + '/api/import?session=testdesk&split=train', photo(3),
                              {'Content-Type': 'application/octet-stream'})
             with opener.open(upload) as response:

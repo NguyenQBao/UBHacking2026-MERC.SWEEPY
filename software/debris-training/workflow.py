@@ -28,15 +28,15 @@ def snapshot(root, destination, required=('train', 'val')):
     sessions, hashes = {}, {}
     for r in records:
         if r['split'] not in SPLITS:
-            raise ValueError('用途错误: ' + r['id'])
+            raise ValueError('Bad split: ' + r['id'])
         if sessions.setdefault(r['session'], r['split']) != r['split']:
-            raise ValueError('同一场景跨集合，拒绝导出')
+            raise ValueError('One scene appears in several splits; export refused')
         if hashes.setdefault(r['sha256'], r['split']) != r['split']:
-            raise ValueError('重复图片跨集合，拒绝导出')
+            raise ValueError('Duplicate image across splits; export refused')
     for split in required:
         subset = [r for r in records if r['split'] == split]
         if not subset or not any(r['boxes'] for r in subset):
-            raise ValueError(f'{split} 至少需要一张已标碎片的图片；请采集独立场景并保存标注')
+            raise ValueError(f'{split} needs at least one labelled photo with debris; collect an independent scene and save its labels')
     destination.mkdir(parents=True, exist_ok=False)
     counts = {}
     for split in SPLITS:
@@ -47,15 +47,15 @@ def snapshot(root, destination, required=('train', 'val')):
         source = root / r['file']
         content = source.read_bytes()
         if sha256(content).hexdigest() != r['sha256']:
-            raise ValueError('原始图片已被修改，拒绝导出: ' + r['id'])
+            raise ValueError('Original photo was modified; export refused: ' + r['id'])
         split, width, height = r['split'], r['width'], r['height']
         rows = []
         for box in r['boxes']:
             if len(box) != 4 or any(type(v) not in (int, float) or not math.isfinite(v) for v in box):
-                raise ValueError('标注损坏: ' + r['id'])
+                raise ValueError('Corrupt label: ' + r['id'])
             x1, y1, x2, y2 = box
             if not (0 <= x1 < x2 <= width and 0 <= y1 < y2 <= height):
-                raise ValueError('框越界: ' + r['id'])
+                raise ValueError('Box outside image: ' + r['id'])
             rows.append(f'0 {(x1+x2)/(2*width):.8f} {(y1+y2)/(2*height):.8f} '
                         f'{(x2-x1)/width:.8f} {(y2-y1)/height:.8f}')
         (destination / 'images' / split / (r['id'] + '.jpg')).write_bytes(content)
@@ -69,8 +69,8 @@ def snapshot(root, destination, required=('train', 'val')):
     (destination / 'data.yaml').write_text(config, encoding='utf-8')
     write_json(destination / 'provenance.json', dict(created=datetime.now(timezone.utc).isoformat(),
                counts=counts, ignored_unreviewed=len(data['records'])-len(records), records=records))
-    print('本次快照：' + json.dumps(counts, ensure_ascii=False), flush=True)
-    print(f'未确认的 {len(data["records"])-len(records)} 张不会进入训练或评估。', flush=True)
+    print('Snapshot: ' + json.dumps(counts, ensure_ascii=False), flush=True)
+    print(f'{len(data["records"])-len(records)} unconfirmed photo(s) are left out of training and evaluation.', flush=True)
     return destination / 'data.yaml'
 
 
@@ -88,12 +88,12 @@ backup = 完整工作区备份（含未确认图片）。images/ + manifest.json
 def export_dataset(root, out, kind='yolo'):
     """Write a portable ZIP of the training data. kind='yolo' (reviewed, standard layout) or 'backup' (everything)."""
     if kind not in ('yolo', 'backup'):
-        raise ValueError('导出格式只能是 yolo 或 backup')
+        raise ValueError('Export format must be yolo or backup')
     root, out = Path(root).resolve(), Path(out).resolve()
     store = Store(root)
     data = store.read()
     if not data['records']:
-        raise ValueError('还没有任何照片可导出')
+        raise ValueError('No photos to export yet')
     out.parent.mkdir(parents=True, exist_ok=True)
     partial = out.with_name(out.name + '.partial')
     created = datetime.now(timezone.utc).isoformat()
@@ -115,12 +115,12 @@ def export_dataset(root, out, kind='yolo'):
             for r in data['records']:
                 source = root / r['file']
                 if sha256(source.read_bytes()).hexdigest() != r['sha256']:
-                    raise ValueError('原始图片已被修改，拒绝导出: ' + r['id'])
+                    raise ValueError('Original photo was modified; export refused: ' + r['id'])
                 archive.write(source, r['file'], compress_type=zipfile.ZIP_STORED)
             archive.writestr('manifest.json', json.dumps(data, ensure_ascii=False, indent=2))
             counts = dict(images=len(data['records']), reviewed=sum(r['reviewed'] for r in data['records']))
     partial.replace(out)
-    print(f'已导出 {out}：' + json.dumps(counts, ensure_ascii=False), flush=True)
+    print(f'Exported {out}: ' + json.dumps(counts, ensure_ascii=False), flush=True)
     return out, counts
 
 
@@ -141,22 +141,22 @@ def import_collection(root, source):
                     yield r, archive.read(r['file'])
     for record, raw in entries():
         if record.get('split') not in SPLITS or not record.get('scene'):
-            errors.append(f'{record.get("file")}: 缺少场景或用途')
+            errors.append(f'{record.get("file")}: missing scene or split')
             continue
         if sha256(raw).hexdigest() != record.get('sha256'):
-            errors.append(f'{record["file"]}: 校验和不符，文件可能损坏')
+            errors.append(f'{record["file"]}: checksum mismatch, file may be corrupt')
             continue
         tag = 'collector:' + record['file'] + (':empty' if record.get('empty') else '')
         try:
             store.add(raw, record['scene'], record['split'], tag)
             added += 1
         except ValueError as error:
-            if '已存在' in str(error):
+            if 'already exists' in str(error):
                 skipped += 1
             else:
                 errors.append(f'{record["file"]}: {error}')
     result = dict(added=added, skipped_duplicates=skipped, errors=errors[:50], error_count=len(errors))
-    print('采集包导入：' + json.dumps(result, ensure_ascii=False), flush=True)
+    print('Collection import: ' + json.dumps(result, ensure_ascii=False), flush=True)
     return result
 
 
@@ -188,7 +188,7 @@ def model_path(args, initial=False):
         return str(previous)
     if initial:
         return 'yolo11n.pt'
-    raise ValueError('还没有训练完成的模型，请先训练，或使用 --model 指定自己的权重')
+    raise ValueError('No trained model yet; train first, or pass your own weights with --model')
 
 
 def metrics_dict(result):
@@ -203,7 +203,7 @@ def run(args):
     os.environ.setdefault('MPLCONFIGDIR', str(root / 'runtime' / 'matplotlib'))
     if args.command == 'import-collection':
         if not args.source:
-            raise ValueError('请用 --source 指定采集包 ZIP 或文件夹')
+            raise ValueError('Pass the collection ZIP or folder with --source')
         import_collection(root, args.source)
         return
     if args.command == 'export-dataset':
@@ -217,15 +217,15 @@ def run(args):
     try:
         from ultralytics import YOLO
     except ImportError as error:
-        raise ValueError('训练依赖未安装。在训练环境执行 python -m pip install -r requirements-train.txt') from error
+        raise ValueError('Training dependencies missing. Run: python -m pip install -r requirements-train.txt') from error
     device = device_choice(args.device)
     if args.command == 'train':
         if not 1 <= args.epochs <= 300 or not 32 <= args.imgsz <= 1280 or args.batch < 1:
-            raise ValueError('epochs需1–300，imgsz需32–1280，batch需大于0')
+            raise ValueError('epochs must be 1-300, imgsz 32-1280, batch > 0')
         name = unique_name('round')
         config = snapshot(root, root / 'snapshots' / name)
         weights = model_path(args, initial=True)
-        print(f'使用 {weights}，设备 {device}；本轮累计使用所有已确认训练数据。', flush=True)
+        print(f'Using {weights} on device {device}; this round uses all confirmed training photos.', flush=True)
         # New data starts a new fine-tuning round, never resume=True on the old dataset.
         model = YOLO(weights)
         model.train(data=str(config), epochs=args.epochs, imgsz=args.imgsz, batch=args.batch,
@@ -235,26 +235,26 @@ def run(args):
         output = Path(model.trainer.save_dir)
         best = output / 'weights' / 'best.pt'
         if not best.exists():
-            raise ValueError('训练没有生成best.pt，请查看日志')
+            raise ValueError('Training produced no best.pt; check the log')
         write_json(output / 'round.json', dict(model=str(best), started_from=weights,
                    data=str(config), device=device, epochs=args.epochs, imgsz=args.imgsz,
                    ultralytics=importlib.metadata.version('ultralytics')))
-        print(f'训练完成。模型：{best}\n验证图表和results.csv：{output}', flush=True)
+        print(f'Training finished. Model: {best}\nValidation charts and results.csv: {output}', flush=True)
     elif args.command == 'evaluate':
         weights = model_path(args)
         name = unique_name('eval_' + args.split)
         config = snapshot(root, root / 'snapshots' / name, required=(args.split,))
-        print(f'评估集合：{args.split}；权重：{weights}', flush=True)
+        print(f'Evaluating split: {args.split}; weights: {weights}', flush=True)
         result = YOLO(weights).val(data=str(config), split=args.split, imgsz=args.imgsz,
                     batch=args.batch, device=device, workers=0, plots=True,
                     project=str(root / 'evaluations'), name=name)
         report = Path(result.save_dir) / 'metrics.json'
         write_json(report, dict(model=str(weights), split=args.split, data=str(config),
                                metrics=metrics_dict(result)))
-        print(f'评估完成：{report}\n' + json.dumps(metrics_dict(result), indent=2), flush=True)
+        print(f'Evaluation finished: {report}\n' + json.dumps(metrics_dict(result), indent=2), flush=True)
     elif args.command == 'predict':
         if not args.source:
-            raise ValueError('请通过 --source 指定照片或照片文件夹')
+            raise ValueError('Pass a photo or photo folder with --source')
         output = root / 'predictions'
         name = unique_name('preview')
         # Consume the generator so prediction finishes without retaining every image in RAM.
@@ -262,7 +262,7 @@ def run(args):
                  imgsz=args.imgsz, device=device, save=True, save_txt=True,
                  save_conf=True, project=str(output), name=name, stream=True):
             pass
-        print(f'预测图片（未经人工确认）：{output / name}', flush=True)
+        print(f'Predicted image (not human-checked): {output / name}', flush=True)
     elif args.command == 'export':
         weights = Path(model_path(args)).resolve()
         deployment = root / 'deploy' / unique_name('model')
@@ -270,7 +270,7 @@ def run(args):
         copy = deployment / 'best.pt'
         shutil.copy2(weights, copy)
         result = YOLO(str(copy)).export(format='ncnn', imgsz=args.imgsz, device='cpu')
-        print(f'Pi部署模型：{result}\n导出完成后仍需在Pi实测速度和精度。', flush=True)
+        print(f'Pi model: {result}\nStill measure speed and accuracy on the Pi after export.', flush=True)
 
 
 def main():
@@ -291,7 +291,7 @@ def main():
     try:
         run(args)
     except Exception as error:
-        print(f'未完成：{error}', file=sys.stderr, flush=True)
+        print(f'Failed: {error}', file=sys.stderr, flush=True)
         return 1
     return 0
 

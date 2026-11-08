@@ -136,7 +136,7 @@ def import_coco(annotation_path, image_root, out, category_ids=None, limit=200,
                     record = store.add(raw, 'public_coco_'+source_hash[:12], 'train',
                                        source=f'coco:{source_hash[:12]}:{image["id"]}')
                 except ValueError as e:
-                    if str(e) == '这张图片已存在，未重复加入':
+                    if str(e) == 'This image already exists; not added again':
                         skipped['duplicate_image'] += 1
                         continue
                     raise
