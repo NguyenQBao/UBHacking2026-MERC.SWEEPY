@@ -32,8 +32,8 @@ def validate(cfg):
         'wheel_speed': (.05, .5), 'turn_speed': (.05, 1),
         'brush_speed': (.05, 1), 'move_seconds': (.02, .3),
         'turn_seconds': (.02, .6), 'sweep_seconds': (.02, 1),
-        'forward_mm_per_second': (10, 500), 'entry_margin_mm': (0, 50),
-        'spinup_seconds': (.05, 1), 'tail_seconds': (.05, 1),
+        'forward_mm_per_second': (10, 500), 'entry_margin_mm': (0, 150),
+        'spinup_seconds': (.05, 1), 'tail_seconds': (.05, 2),
         'settle_seconds': (.1, 2), 'confidence': (.1, .99),
         'angle_tolerance_deg': (1, 25), 'center_tolerance_mm': (2, 80),
         'collect_y_mm': (10, 200), 'max_y_mm': (100, 2000),
@@ -276,8 +276,8 @@ class Motors:
         self.run_sequence([action])
 
     def run_sequence(self, actions):
-        if not 1 <= len(actions) <= 3:
-            raise ValueError('Only 1..3 bounded actions per sequence')
+        if not 1 <= len(actions) <= 4:
+            raise ValueError('Only 1..4 bounded actions per sequence')
         for a in actions:
             if a.brush and not self.brush_enabled:
                 raise ValueError('Brush disabled: --wheels-only never opens brush GPIO')
@@ -434,7 +434,8 @@ class Controller:
             self.ready_at = self.clock() + seconds + self.cfg['settle_seconds']
             self.status = 'BRUSH_TEST'
 
-    TUNABLE = ('wheel_speed', 'turn_speed', 'move_seconds', 'turn_seconds', 'buzzer_volume', 'buzzer_enabled')
+    TUNABLE = ('wheel_speed', 'turn_speed', 'move_seconds', 'turn_seconds', 'entry_margin_mm',
+               'buzzer_volume', 'buzzer_enabled')
 
     def set_setting(self, key, value):
         """Change one tunable value at runtime; same bounds as config validation."""
@@ -538,7 +539,10 @@ class Controller:
                 return None
             actions = [Action(0, 0, c['brush_speed'], c['spinup_seconds'], 'BRUSH_SPINUP'),
                        Action(c['wheel_speed'], c['wheel_speed'], c['brush_speed'], push_seconds, 'SWEEP'),
-                       Action(0, 0, c['brush_speed'], c['tail_seconds'], 'BRUSH_TAIL')]
+                       ]
+            # Brush keeps spinning after the push; split so every motor lease stays <= 1 s.
+            n = math.ceil(c['tail_seconds'])
+            actions += [Action(0, 0, c['brush_speed'], c['tail_seconds']/n, 'BRUSH_TAIL')]*n
             # Keep brush running across these stages; GPIO timing does not wait for inference.
             self.motors.run_sequence(actions)
             self.phase = 'VERIFY'

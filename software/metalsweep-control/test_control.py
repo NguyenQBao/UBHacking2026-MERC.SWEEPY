@@ -75,6 +75,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(self.motors.label, 'SWEEP'); self.assertGreater(self.motors.values[2], 0)
         self.clock.now = self.motors.until+.01; self.motors.expire()
         self.assertEqual(self.motors.label, 'BRUSH_TAIL'); self.assertEqual(self.motors.values[0], 0)
+        tail = self.motors.until-self.clock.now+.01
+        for _ in self.motors.sequence:
+            self.clock.now = self.motors.until+.01; self.motors.expire()
+            self.assertEqual(self.motors.label, 'BRUSH_TAIL'); self.assertGreater(self.motors.values[2], 0)
+            tail += self.motors.until-self.clock.now+.01
+        self.assertAlmostEqual(tail, c['tail_seconds'], delta=.05)  # brush keeps turning the whole tail
         self.ready()
         self.observe((0, 55), 1)  # still in front of the scoop after the sweep = miss
         self.assertEqual(self.controller.status, 'VERIFY_MISSED')
@@ -84,8 +90,8 @@ class Tests(unittest.TestCase):
     def sweep(self, xy, n=3):
         a = self.observe(xy, n)
         self.assertEqual(a.label, 'BRUSH_SPINUP')
-        self.clock.now = self.motors.until+.01; self.motors.expire()
-        self.clock.now = self.motors.until+.01; self.motors.expire()
+        while self.motors.until:
+            self.clock.now = self.motors.until+.01; self.motors.expire()
         self.ready()
 
     def tick(self, targets):
@@ -137,6 +143,13 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError): self.controller.set_setting('buzzer_enabled', 1)
         self.controller.set_setting('wheel_speed', .4)
         self.assertFalse(self.controller.auto)
+
+    def test_final_push_extra_is_adjustable(self):
+        self.controller.set_setting('entry_margin_mm', 120)
+        self.arm(); self.observe((0, 55))
+        c = self.cfg
+        self.assertAlmostEqual(self.motors.sequence[0].seconds, (55+120)/c['forward_mm_per_second'])
+        with self.assertRaises(ValueError): self.controller.set_setting('entry_margin_mm', 200)
 
     def test_final_push_too_long_refuses_to_move(self):
         self.cfg['forward_mm_per_second'] = 20

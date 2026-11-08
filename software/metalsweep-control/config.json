@@ -22,7 +22,7 @@
   "forward_mm_per_second": 483,
   "entry_margin_mm": 10,
   "spinup_seconds": 0.35,
-  "tail_seconds": 0.30,
+  "tail_seconds": 1.30,
   "settle_seconds": 0.35,
   "confidence": 0.60,
   "angle_tolerance_deg": 6,

@@ -156,7 +156,8 @@ class Handler(BaseHTTPRequestHandler):
                                  settings=app.controller.settings(), mode=app.controller.mode,
                                  collected=app.controller.collected, run_collected=app.controller.run_collected,
                                  sound_seq=app.buzzer.sound_seq, sound_name=app.buzzer.sound_name,
-                                 buzzer_passive=app.cfg['buzzer']['passive'], sounds=SOUNDS)
+                                 buzzer_passive=app.cfg['buzzer']['passive'], sounds=SOUNDS,
+                                 push_limit_mm=round(app.cfg['sweep_seconds']*app.cfg['forward_mm_per_second']))
                     self.reply(state)
                 else:
                     raw = app.jpeg if self.path == '/frame.jpg' else getattr(app, 'raw', b'')
