@@ -1,64 +1,64 @@
-# 实测记录模板
+# Measurement log
 
-本页空项需实测，示例/代码默认值不能直接当作真实硬件参数。
+Fill the blanks by measuring. Example and code default values are not real hardware parameters.
 
-## 安装尺寸
+## Mounting dimensions
 
-| 项目 | 当前信息/记录 |
+| Item | Current value / record |
 |---|---|
-| 亚克力安装圆孔 | 用户提供半径10mm，即直径20mm；建议卡尺复核 |
-| 底板厚度 | 暂按3mm，未实测 |
-| 相机PCB外形 | 用户提供25×25mm |
-| 裸PCB厚度 | V7按1.6mm假定，未实测 |
-| 镜头距地高度 | 待测：___mm |
-| 镜头向下角度 | 待测：___° |
-| 有效刷宽 | 待测：___mm；half_brush_mm取其一半 |
-| 滚刷直径（含刷毛） | 待测：___mm |
-| 入口前唇距地高度 | 待测：___mm |
-| 近距离可见范围 | 待测：入口前最少___mm还能看到目标 |
+| Acrylic mounting hole | Radius 10 mm (diameter 20 mm) as given; check with calipers |
+| Base plate thickness | Assumed 3 mm, not measured |
+| Camera board outline | 25×25 mm as given |
+| Bare board thickness | Assumed 1.6 mm, not measured |
+| Lens height above floor | To measure: ___ mm |
+| Lens down angle | To measure: ___° |
+| Effective brush width | To measure: ___ mm; `half_brush_mm` is half of it |
+| Brush diameter (with bristles) | To measure: ___ mm |
+| Intake front lip height | To measure: ___ mm |
+| Nearest visible distance | To measure: targets visible from ___ mm in front of the intake |
 
-## 六点平面标定＋独立三点检查
+## Ground calibration (6 fit points + 3 check points)
 
-原点为滚刷入口中心在地面的投影；X向右为正，Y向前为正，单位mm。每点记录u,v像素坐标和尺子量的X,Y。相机/分辨率/旋转/裁切改变后重做。
+The origin is the centre of the scoop's front edge on the floor; X is positive to the right, Y positive forward, in mm. For each point record the pixel coordinates u,v and the ruler-measured X,Y. Redo it after any change of camera, resolution, rotation or crop.
 
-| 点 | u | v | X mm | Y mm | 用途 |
+| Point | u | v | X mm | Y mm | Use |
 |---|---|---|---|---|---|
-| 1 | | | | | 拟合 |
-| 2 | | | | | 拟合 |
-| 3 | | | | | 拟合 |
-| 4 | | | | | 拟合 |
-| 5 | | | | | 拟合 |
-| 6 | | | | | 拟合 |
-| 7 | | | | | 独立检查 |
-| 8 | | | | | 独立检查 |
-| 9 | | | | | 独立检查 |
+| 1 | | | | | Fit |
+| 2 | | | | | Fit |
+| 3 | | | | | Fit |
+| 4 | | | | | Fit |
+| 5 | | | | | Fit |
+| 6 | | | | | Fit |
+| 7 | | | | | Check |
+| 8 | | | | | Check |
+| 9 | | | | | Check |
 
-## 运动
+## Motion
 
-同一PWM、地面、电量、载重下，前进0.10/0.20/0.30秒各重复数次，量实际位移和停机滑行；确认方向后在有围挡地面测试。再用接近最终推进的时长复核平均速度，短脉冲加速和长段运动不一定一致。
+With the same PWM, floor, battery level and load, drive forward for 0.10/0.20/0.30 s several times each and measure the distance including the coast after stopping. Confirm directions first, and test on a floor with barriers. Then re-check the average speed with a duration close to the final push; short-pulse acceleration and longer runs differ.
 
-左右分别数相同短脉冲转一圈需要的次数N，每次转后完全停稳。平均角度约360/N度，重复3圈，并另查90度是否接近预期。这个值是粗调，轮胎打滑仍需要视觉闭环修正。
+For turning, count the number N of identical short pulses for one full turn each way, letting the car stop completely each time. The average angle is about 360/N degrees. Repeat 3 turns and check that 90° is close to the expected count. This is a coarse value; tyre slip is corrected by the vision loop.
 
-| 方向 | PWM | 脉冲秒 | 位移mm/转角° | 电量/地面 | 重复编号 |
+| Direction | PWM | Pulse s | Distance mm / angle ° | Battery / floor | Run |
 |---|---|---|---|---|---|
-| 转向 | 0.5 | 0.20 | 29次/360°，约12.4°/次 | 未记录 | 2026-11-07第1次 |
-| 转向 | 0.5 | 0.10 | 88次/360°，约4.1°/次（采用） | 未记录 | 2026-11-07第2次 |
-| 前进 | 0.5 | 0.30 | 145mm/次（含停机滑行）→ forward_mm_per_second≈483（采用） | 未记录 | 2026-11-07第1次 |
+| Turn | 0.5 | 0.20 | 29 pulses per 360°, about 12.4° each | Not recorded | 2026-11-07 #1 |
+| Turn | 0.5 | 0.10 | 88 pulses per 360°, about 4.1° each (used) | Not recorded | 2026-11-07 #2 |
+| Forward | 0.5 | 0.30 | 145 mm per pulse (with coast) → `forward_mm_per_second` ≈ 483 (used) | Not recorded | 2026-11-07 #1 |
 | | | | | | |
 
-## 单片收集
+## Single-piece collection
 
-| 次数 | 目标/大小 | 初始X/Y | 旋钮刻度 | 推进时间 | 识别 | 对准 | 真正进盒 | 失败原因 |
+| Run | Target / size | Start X/Y | Knob setting | Push time | Detected | Aligned | Really in the box | Failure reason |
 |---|---|---|---|---|---|---|---|---|
 | 1 | | | | | | | | |
 
-旋钮刻度不等于RPM，目标消失不等于进盒。默认collect_y_mm=60、forward_mm_per_second=100、entry_margin_mm=10等仅是待调初值。计算最终推进时间t=(Y+入口余量)/实测车速，并受sweep_seconds上限约束。
+The knob setting is not RPM, and a target leaving the image is not the same as entering the box. Start values such as `collect_y_mm`, `forward_mm_per_second` and `entry_margin_mm` must be tuned. The final push time is t = (Y + `entry_margin_mm`) / measured speed, limited by `sweep_seconds`. `entry_margin_mm` can also be tuned live on the control page (Final push extra).
 
-## 摄像头视野（2026-11-07，镜头支架改回横向后）
+## Camera view
 
-| 项目 | 实测 | 对配置的影响 |
-|---|---|---|
-| 画面下缘到铲斗/刷子入口 | 35mm（盲区） | 目标进入最后35mm后不可见；collect_y_mm=60大于盲区，最终推进在目标仍可见时触发 |
-| 画面可检测远端 | >400mm | max_y_mm=400，更远目标不触发自动收集 |
+| Date | Item | Measured | Effect on the config |
+|---|---|---|---|
+| 2026-11-07 (camera mount back to horizontal) | Image bottom edge to scoop/brush intake | 35 mm (blind zone) | Targets are invisible in the last 35 mm; `collect_y_mm` must be larger so the final push starts while the target is still visible |
+| 2026-11-07 | Farthest detectable distance | > 400 mm | `max_y_mm` limits which targets trigger Auto |
 
-改动支架角度或高度后，盲区与远端距离都要重测，并重新地面标定。
+After changing the mount angle or height, re-measure the blind zone and far limit, and redo the ground calibration.

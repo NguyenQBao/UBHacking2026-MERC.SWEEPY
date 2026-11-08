@@ -74,14 +74,14 @@ def snapshot(root, destination, required=('train', 'val')):
     return destination / 'data.yaml'
 
 
-EXPORT_README = '''METALSWEEP debris 训练数据导出
-导出时间：{created}
-格式：{kind}
+EXPORT_README = '''METALSWEEP debris training data export
+Exported: {created}
+Format: {kind}
 
-yolo   = 标准YOLO检测数据集（只含已确认标注）。images/{{train,val,test}}、labels/{{train,val,test}}、data.yaml、provenance.json。
-         类别 0 = debris。可直接用于 Ultralytics：yolo detect train data=data.yaml（data.yaml 的 path 为解压目录 .）。
-backup = 完整工作区备份（含未确认图片）。images/ + manifest.json；解压成一个文件夹后用
-         python studio.py --root 该文件夹  即可继续标注/训练。
+yolo   = standard YOLO detection dataset (confirmed labels only): images/{{train,val,test}}, labels/{{train,val,test}}, data.yaml, provenance.json.
+         Class 0 = debris. Use it directly with Ultralytics: yolo detect train data=data.yaml (the data.yaml path is the unzipped folder ".").
+backup = full workspace backup (including unconfirmed images): images/ + manifest.json. Unzip it to a folder, then run
+         python studio.py --root <that folder>  to continue labelling or training.
 '''
 
 
@@ -282,7 +282,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('prepare', 'train', 'evaluate', 'predict', 'export', 'export-dataset', 'import-collection'))
     parser.add_argument('--root', default=str(HERE / 'workspace'))
-    parser.add_argument('--model', help='默认使用上一轮成功训练的best.pt，首轮用yolo11n.pt')
+    parser.add_argument('--model', help='Default: best.pt from the last successful round; yolo11n.pt for the first round')
     parser.add_argument('--device', default='auto', choices=('auto', 'cpu', 'mps', '0'))
     parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--imgsz', type=int, default=640)
@@ -294,8 +294,8 @@ def main():
     parser.add_argument('--split', choices=('val', 'test'), default='test')
     parser.add_argument('--source')
     parser.add_argument('--conf', type=float, default=.35)
-    parser.add_argument('--format', choices=('yolo', 'backup'), default='yolo', help='export-dataset 格式')
-    parser.add_argument('--out', help='export-dataset 输出 ZIP 路径；默认 workspace/exports/')
+    parser.add_argument('--format', choices=('yolo', 'backup'), default='yolo', help='export-dataset format')
+    parser.add_argument('--out', help='export-dataset output ZIP path; default workspace/exports/')
     args = parser.parse_args()
     try:
         run(args)

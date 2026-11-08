@@ -1,30 +1,29 @@
-# 版本与验证状态
+# Status and verification
 
-整理日期：2026-11-05。这里记录已有代码与原型状态，不把讨论过的功能算成已完成。
+Updated 2026-11-08. This page records what exists in code and on the prototype. Features that were only discussed are not counted as done.
 
-| 项目 | 已有 | 尚未验证/实现 |
+| Area | Done | Not yet verified or implemented |
 |---|---|---|
-| Mac训练工作台 | 采集、标框、50张分批、累计快照训练、独立评估、NCNN导出 | 当前现场数据质量/真实准确率 |
-| COCO导入 | 类别筛选、归一化、单类合并、图片尺寸/方向检查、新工作区和可选合并 | 用户下载的真实全量数据；纯语义mask导入 |
-| 视觉控制 | CSI接入、HSV测试或自训debris模型、平面X/Y、短脉冲闭环 | 真实Pi时延、目标关联和自动收集成功率 |
-| 轮刷驱动 | L298N左右轮；CCM6N继电器开关适配；备选H桥 | 实际电流、电压、继电器触发/停止惯性 |
-| 标定 | 6点手动拟合，独立点复核流程 | 自动棋盘格/ArUco、镜头去畸变 |
-| V8模型（cad-v8） | 7个STL：摄像头支架3件、滚刷主轴、清扫轮、斜坡、收集盒；网格封闭检查；收集盒/斜坡/主轴已打印并摆放比对 | 固定方式、滚刷另一端支撑、通电收集测试、相机支架安装与净空 |
-| 整机安全/闭环 | 软件动作时限、停止、单目标循环后人工核验 | 桌沿、碰撞、堵转、自动进盒确认 |
+| Mac training studio | Capture, box labelling, batches of 50, cumulative snapshot training, separate evaluation, NCNN export, start-fresh option | Accuracy across floors (dark carpet and new camera angles are missing from the data) |
+| Pi data collector | Photos sorted by scene and split, progress, ZIP export for the studio | — |
+| COCO import | Category filter, normalisation, single-class merge, image size/orientation checks, new or merged workspace | Full real downloads; pure semantic-mask import |
+| Vision control | CSI camera, HSV test or trained debris model, ground X/Y, short-pulse closed loop | Long-run latency; success rate of automatic collection |
+| Auto modes | Collect nearest; collect all in view (nearest first, up to `max_targets`); check after each sweep with success/miss sounds | Searching when nothing is in view (not implemented) |
+| Sound | Detection beep, named melodies, extra melodies from `sounds.json`, volume and mute | Melodies need a passive buzzer |
+| Wheel and brush drivers | L298N for both wheel sides; CCM6N relay on/off; optional H-bridge | Real current, voltage, relay timing and brush run-down |
+| Calibration | Hand-measured homography (6+ points), fit residual about 2.6 mm on the car | Automatic chessboard/ArUco, lens undistortion |
+| CAD v8 | 7 STL files: 3 camera holder parts, brush shaft, cleaning wheel, ramp, storage box; mesh checks; box/ramp/shaft printed and test-fitted | Fixing method, second brush-shaft support, powered collection test |
+| Whole-car safety | Motor commands expire on their own, STOP, operator heartbeat, cycle limits | Table edge, collision and stall sensing |
 
-历史测试记录见各软件目录的验证记录；它们使用合成数据和模拟GPIO，不能替代实物测试。此次整理后的测试结果另见RELEASE_CHECKS.md。
+The software folders keep `VERIFICATION.md` files with earlier test records. They use synthetic data and simulated GPIO and do not replace tests on the car. Results after this clean-up are in [RELEASE_CHECKS.md](RELEASE_CHECKS.md).
 
-## 历史目录
+## 24-hour plan
 
-archive中保留V1/V2底盘、V3刷子件、V4/V5/V7相机支架、V2装配图和早期方向/距离算法；其中部分假设来自尚未确定器件时期。当前实际主控为Pi4B、已有亚克力底盘、目标为纸团/瓶盖。不能照历史设计推定实物尺寸或电机额定参数。
+- 0–3 h: fix the camera; confirm the manual wheels, brush and intake can collect.
+- 3–5 h: shoot and label the first 50 photos; start training.
+- 5–9 h: add targeted data; calibrate distance and motion while training runs.
+- 9–17 h: integrated tests on the Pi.
+- 17–21 h: fix the main failures; add a batch of data if needed.
+- 21–24 h: freeze the model and parameters, rehearse, record a backup video.
 
-## 24小时任务预算
-
-- 0–3h：固定相机、确认手动轮刷和入口能收集。
-- 3–5h：第一批50张拍摄/标注并启动训练。
-- 5–9h：补针对性数据；训练期间完成距离和运动标定。
-- 9–17h：Pi端联动测试。
-- 17–21h：处理主要失败，必要时补一批数据。
-- 21–24h：固定模型/参数、重复演练和录制备用视频。
-
-这是分工预算，不是训练耗时或完成时间保证。
+This is a time budget for the team, not a promise of training time or finish time.

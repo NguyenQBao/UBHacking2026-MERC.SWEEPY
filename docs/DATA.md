@@ -1,29 +1,31 @@
-# 纸团和瓶盖的数据计划
+# Data plan
 
-第一版只预测一个类别debris，包含成团纸屑、实际打算清扫的瓶盖。拍摄使用最终安装的OV5647视角，先固定支架，再正式采集。用无框原图，不能用VNC截图或带框预测图替代。
+The model predicts a single class, `debris`: every small item the car should sweep up (brass tubes and caps on the car today; paper balls and bottle caps in the original plan). Shoot from the final OV5647 camera position: fix the mount first, then collect. Use the unannotated raw image, never a VNC screenshot or a prediction image with boxes.
 
-## 黑客松起步预算
+## Hackathon budget
 
-先50张跑通流程，约100张作为第一版预算：35张纸团、35张瓶盖、10张混合、20张空场景。多数每张1–3个目标。按独立拍摄场景划分train/val/test；比例可约70/15/15，场景独立比精确比例更重要。
+Run the whole loop on 50 photos first; about 100 photos is the budget for version 1, for example 35 of each main debris type, 10 mixed and 20 empty scenes. Most photos should hold 1–3 targets. Split train/val/test by separate shooting scenes, roughly 70/15/15; keeping scenes separate matters more than the exact ratio.
 
-纸团覆盖白纸/印刷纸、不同大小/揉紧程度；瓶盖覆盖不同颜色、正面/反面/侧立。近中远、左中右、实际光照和阴影均要有。框紧贴可辨认目标，所有需要清扫的目标均标注，空图明确确认。
+Cover different sizes, colours and poses (face up, face down, on the side), near/middle/far and left/centre/right positions, and real lighting with shadows. Draw tight boxes around every target that should be swept, and confirm empty photos as empty.
 
-下一批50张围绕验证集失败补拍：漏检形态、易误报背景和新光照。测试集留到里程碑检查，不根据同一测试集反复调参。标定纸出现和手动量尺寸期间暂停训练照片采集，Mac训练可以继续。
+Plan the next 50 photos around validation failures: missed shapes, backgrounds that cause false positives, and new lighting. Keep the test set for milestone checks; do not tune repeatedly against it. Pause photo collection while calibration paper is on the floor or you are measuring; Mac training can continue.
 
-## TACO补充
+Lesson from the car: every training photo so far shows light floors, while val/test include dark carpet. A model can win on mAP and still be unsure on the car. Always check confidence on the car before deploying, and add photos of each new floor and camera angle.
 
-官方来源：https://github.com/pedropro/TACO
+## TACO as a supplement
 
-原始官方annotations.json中已核对的类别：7 Plastic bottle cap、8 Metal bottle cap、33 Normal paper；31 Tissues仅在实际也收纸巾时加入。下载版可能重新编号，先用--list-categories检查。TACO普通纸不是专门的成团纸屑数据，现场纸团仍需自采。
+Official source: https://github.com/pedropro/TACO
 
-示例筛选参数：`--category-ids "7,8,33"`。公开数据不需要手工扭成机器人视角；保留与JSON匹配的原图，训练程序统一缩放，原类别合并为debris。二维变形不能重建原图没有拍到的侧面；真实低视角照片才用于弥补这种差异。
+Categories checked in the original `annotations.json`: 7 Plastic bottle cap, 8 Metal bottle cap, 33 Normal paper; add 31 Tissues only if tissues are also collected. Downloaded versions may renumber categories, so run `--list-categories` first. TACO "Normal paper" is not crumpled paper; field photos are still needed.
 
-COCO转换工具默认预填框、待人工复核；只导入train。可将旧workspace照片和标注复制合并到新workspace，原数据保留。不会下载数据或把未标注图自动变成正确标签。
+Example filter: `--category-ids "7,8,33"`. Public images do not need to be warped to the robot's view: keep the original images that match the JSON; training resizes them and merges the original categories into `debris`. A 2-D warp cannot create sides the photo never showed; only real low-angle photos close that gap.
 
-其他参考：
-- ZeroWaste：https://ai.bu.edu/zerowaste/ （工业场景，许可CC BY-NC 4.0；标注版本需单独核对）。
-- TrashNet：https://github.com/garythung/trashnet （原始为分类图，不能直接当检测框训练集）。
+The COCO converter pre-fills boxes for human review and imports to train only. Photos and labels from an old workspace can be copied into a new one; the originals stay. It never downloads data or turns unlabelled images into correct labels.
 
-## 评估
+Other references:
+- ZeroWaste: https://ai.bu.edu/zerowaste/ (industrial scenes, CC BY-NC 4.0; check the annotation version separately).
+- TrashNet: https://github.com/garythung/trashnet (classification images; cannot be used as a detection set directly).
 
-逐张查看预测图，并比较同一现场验证集的Precision/Recall/mAP与误检模式。Pi端另外检查320/640输入下的漏检和处理耗时；小目标变成几个像素时先改善成像/距离。检测、转向和进盒成功率分开记录；本仓库没有真实现场准确率结果。
+## Evaluation
+
+Look at every prediction image, and compare precision, recall, mAP and false-positive patterns on the same field validation set. On the Pi, check missed detections and processing time. When a small target is only a few pixels, improve the image or distance first. Record detection, alignment and collection success separately.

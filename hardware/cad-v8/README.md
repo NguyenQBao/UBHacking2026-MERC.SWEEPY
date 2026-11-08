@@ -1,32 +1,32 @@
-# CAD V8
+# CAD v8
 
-当前打印模型（2026-11-05更新），替代此前的 camera-mount-v7 与 brush-collector-v3（已移至 [archive](../../archive)）。
+Current print model (updated 2026-11-05). It replaces the earlier camera-mount-v7 and brush-collector-v3 parts, which are no longer in the repository (see git history).
 
-| 文件 | 部件（按文件名） | 外形尺寸 X×Y×Z (mm) |
+| File | Part | Size X×Y×Z (mm) |
 |---|---|---|
-| [camera-holder-vertical.stl](camera-holder-vertical.stl) | 摄像头支架·竖杆 | 10 × 100 × 10 |
-| [camera-holder-horizontal.stl](camera-holder-horizontal.stl) | 摄像头支架·横杆 | 4.5 × 7 × 80 |
-| [camera-holder-front.stl](camera-holder-front.stl) | 摄像头支架·前部件 | 30 × 42 × 30 |
-| [shaft-main.stl](shaft-main.stl) | 滚刷主轴（带纵向槽，直连减速电机） | 29.7 × 145 × 30 |
-| [cleaning-wheel.stl](cleaning-wheel.stl) | 清扫轮片（配合主轴，照片中未装） | 7.6 × 145 × 28.1 |
-| [ramp-main.stl](ramp-main.stl) | 导料斜坡（收集盒前缘） | 67.5 × 149 × 31.1 |
-| [metal-storage-main.stl](metal-storage-main.stl) | 收集盒（Metal storage，装在底盘前端下方） | 149 × 60 × 118 |
+| [camera-holder-vertical.stl](camera-holder-vertical.stl) | Camera holder · vertical post | 10 × 100 × 10 |
+| [camera-holder-horizontal.stl](camera-holder-horizontal.stl) | Camera holder · horizontal bar | 4.5 × 7 × 80 |
+| [camera-holder-front.stl](camera-holder-front.stl) | Camera holder · front part | 30 × 42 × 30 |
+| [shaft-main.stl](shaft-main.stl) | Brush shaft (with a lengthwise slot, driven directly by the gear motor) | 29.7 × 145 × 30 |
+| [cleaning-wheel.stl](cleaning-wheel.stl) | Cleaning wheel blade (fits on the shaft; not fitted in the photo) | 7.6 × 145 × 28.1 |
+| [ramp-main.stl](ramp-main.stl) | Ramp (front edge of the storage box) | 67.5 × 149 × 31.1 |
+| [metal-storage-main.stl](metal-storage-main.stl) | Metal storage box (under the front of the chassis) | 149 × 60 × 118 |
 
-## 装配示意
+## Assembly
 
-![V8收集机构试装照片](assembly_photo.jpg)
+![V8 collection mechanism test fit](assembly_photo.jpg)
 
-大致布局（照片为桌面摆放示意，非最终固定状态）：
+Rough layout (the photo is a table-top test fit, not the final mounting):
 
-1. 收集盒装在亚克力底盘前端下方，开口朝前。
-2. 斜坡接在收集盒前缘，向前下方斜伸到地面。
-3. 滚刷主轴横放在斜坡前方，一端直连金属减速电机输出轴，转动把碎片扫上斜坡进盒。
-4. 摄像头支架（竖杆+横杆+前部件）照片中未装，安装位置待定。
+1. The storage box sits under the front of the acrylic chassis, opening forward.
+2. The ramp joins the front edge of the box and slopes forward down to the floor.
+3. The brush shaft lies across the front of the ramp. One end connects straight to the metal gear motor's output shaft; turning sweeps debris up the ramp into the box.
+4. The camera holder (post + bar + front part) is not fitted in the photo; its position is still open.
 
-电机、轴承座/滚刷另一端支撑和固定螺丝不在STL内，按实物确认。
+The motor, the bearing/support for the other end of the brush, and the fixing screws are not in the STL files; confirm them on the real parts.
 
-## 检查状态
+## Check status
 
-- 7个文件均为二进制STL，文件长度与三角面数一致，网格封闭（无非流形边）。
-- 收集盒、斜坡、滚刷主轴已打印并与底盘摆放比对；尚未完成固定、通电转动和实际收集测试。
-- 无源码/参数文件；修改需回到原CAD工程。
+- All 7 files are binary STL; file length matches the triangle count, and the meshes are closed (no non-manifold edges).
+- The box, ramp and brush shaft are printed and test-fitted against the chassis. Fixing, powered rotation and real collection tests are not done yet.
+- No source or parameter files; changes go back to the original CAD project.

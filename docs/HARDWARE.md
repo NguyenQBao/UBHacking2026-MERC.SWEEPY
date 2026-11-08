@@ -1,115 +1,115 @@
-# 硬件与接线
+# Hardware and wiring
 
-| 部分 | 已知信息 | 尚需确认 |
+| Part | Known | Still to confirm |
 |---|---|---|
-| 控制器 | Raspberry Pi 4B | 实际供电与散热 |
-| 相机 | Hiwonder TY-9251-OV5-V1.0，CSI排线连接（按OV5647处理），用户提供外形25×25mm | 元件/排线净空、裸板厚度 |
-| 轮子 | 现有四轮亚克力底盘、黄色TT电机、L298N | 每组电流、额定电压、接线与方向 |
-| 滚刷 | 实物铭牌（2026-11-06）：TSINY TS-25GAH370-20，12V，300RPM，带霍尔编码器；取代早期商品截图中的JGB37-520/600rpm | 额定/堵转电流；轴径与橙色主轴孔配合；是否继续用CCM6N调速；刷速与收集效果 |
-| 电池 | 购买记录（2026-11-03）：Shentec 11.1V 3500mAh 锂电池组，3S1P 18650，扫地机替换电池（CEN330/CR330兼容），3针插头 | 是否整车共用；3针定义（推测+/−/温度）；是否带保护板；充电器 |
-| 打印机 | 现场照片标识Prusa MK4S | 实际喷嘴、材料和实验室预设 |
-| 距离传感器 | 计划使用，未确认安装 | 型号、接线、目标适用性 |
+| Controller | Raspberry Pi 4B | Real power supply and cooling |
+| Camera | Hiwonder TY-9251-OV5-V1.0 on the CSI ribbon (treated as OV5647), board 25×25 mm | Component/ribbon clearance, bare board thickness |
+| Wheels | Existing four-wheel acrylic chassis, yellow TT motors, L298N | Current per side, rated voltage, wiring and direction |
+| Brush | Nameplate (2026-11-06): TSINY TS-25GAH370-20, 12 V, 300 RPM, Hall encoder; replaces the JGB37-520/600 rpm motor from early shop screenshots | Rated/stall current; shaft fit in the orange brush shaft; whether to keep the CCM6N speed board; brush speed vs. collection |
+| Battery | Purchase record (2026-11-03): Shentec 11.1 V 3500 mAh Li-ion pack, 3S1P 18650, robot-vacuum replacement (CEN330/CR330), 3-pin plug | Shared by the whole car?; 3-pin pinout (probably +/−/temperature); protection board; charger |
+| Printer | Prusa MK4S (seen in site photos) | Real nozzle, material and lab presets |
+| Distance sensor | Planned, not confirmed as installed | Model, wiring, suitability for the targets |
 
-## 实物照片识别（2026-11-06）
+## Parts identified from photos (2026-11-06)
 
-按用户提供的元件照片记录；“待确认”项未经实测，不能据此直接接线。
+Recorded from the team's part photos. Items marked "to confirm" are not measured; do not wire from them directly.
 
-以下部分元件来自同一套件，不是全部都要装。当前建议：
+Some parts come from the same kit and do not all need to be fitted. Current advice:
 
-| 元件 | 建议 | 理由 |
+| Part | Advice | Reason |
 |---|---|---|
-| 滚刷电机、摄像头 | 使用（已确认） | 收集与视觉核心 |
-| 降压模块 | 使用：套件LM2596类模块给TT轮（先空载用万用表调到约7.5V再接L298N（L298N本身压降约2V，电机实得约5.5V）） | Pi另购5V/3A以上模块（如XL4015类或5V/5A USB-C降压），不与车轮共用一个模块 |
-| 红外避障（朝下） | 建议使用 | 桌沿检测，补“没有桌沿感知”的安全缺口；软件尚未接入 |
-| HC-SR04超声波 | 暂不使用 | 主流程靠视觉；前方碰撞保护后续需要时再加 |
-| ULN2003步进驱动板 | 不使用 | 本车没有步进电机，且不能正反转驱动直流滚刷 |
+| Brush motor, camera | Use (confirmed) | Core of collection and vision |
+| Buck converter | Use the kit's LM2596-type module for the TT wheels: set it to about 7.5 V with no load and a multimeter before connecting the L298N (the L298N drops about 2 V, so the motors get about 5.5 V) | Buy a separate 5 V / 3 A+ module for the Pi (XL4015-type, or a 5 V / 5 A USB-C buck); never share one module with the wheels |
+| IR obstacle sensor (facing down) | Recommended | Table-edge detection closes the "no edge sensing" gap; not yet in the software |
+| HC-SR04 ultrasonic | Not for now | The main flow uses vision; add front collision protection later if needed |
+| ULN2003 stepper board | Do not use | The car has no stepper motor, and it cannot reverse a DC brush motor |
 
-| 元件 | 照片可见信息 | 用途/影响 | 待确认 |
+| Part | Visible in the photo | Use / effect | To confirm |
 |---|---|---|---|
-| 滚刷电机 | TSINY TS-25GAH370-20，DC 12.0V，300RPM，25mm齿轮箱，尾部霍尔编码器，6线 | 已确认用于滚刷；12V可直接用电池；编码器可测转速/堵转 | 6线定义（通常电机+/−、编码器VCC/GND/A/B）；轴径（常见4mm D轴）；与橙色主轴孔是否匹配 |
-| 降压模块 | 蓝色可调DC-DC，输入100µF/50V、输出220µF/35V电容，外形类似LM2596 | 电池→TT轮电压或→5V | 实际芯片型号；LM2596类标称3A、连续约2A，给Pi4B（5V/3A）偏紧 |
-| 摄像头 | Hiwonder，板号TY-9251-OV5-V1.0，背面另有4针白色插座 | 用户确认经排线（CSI）连接Pi，与现有Picamera2代码一致 | 传感器具体型号（按OV5647处理）；4针插座用途（未使用前不接）；PCB外形尺寸与安装孔距 |
-| 超声波测距 | HC-SR04，背面标Trig/Rx/SCL、Echo/Tx/SDA、R4/R5可选IIC/UART/1-WIRE（2020多模式版） | 前方障碍/距离 | 3.3V下能否工作；5V供电时Echo为5V，接Pi须分压（如1kΩ/2kΩ） |
-| 红外避障 | MH-Sensor-Series（Flying-Fish），VCC/GND/OUT，比较器+电位器 | 向下安装可做桌沿检测，向前可做近距障碍 | 用3.3V供电以免OUT为5V；检测距离由电位器调，深色/反光表面会误判 |
-| 蜂鸣器 | GPIO12（物理32脚）控制，每次画面中新出现debris时响一声（默认80ms，1秒内不重复） | config.json的`buzzer`段：`passive=false`为有源蜂鸣器（通电即响），无源蜂鸣器改true（2kHz PWM） | 裸蜂鸣器电流可能超过GPIO能力，建议用带三极管的蜂鸣器模块；模块低电平触发时把`active_high`改false |
-| 刷子继电器 | 红色1路继电器模块，JQC-3FF-S-Z（线圈12VDC；触点10A 30VDC），光耦输入，high/low level trigger跳线，DC+/DC−/IN与COM/NO/NC两组端子 | 已确认用于GPIO21开关滚刷电源 | 跳线必须插H（高电平触发）；线圈12V由电池11.1V直供（满电12.6V可接受） |
-| 步进驱动板 | ULN2003板，IN1–IN4，A–D指示灯，5–12V，5针插座（常配28BYJ-48） | 只能单向低边开关，不能正反转驱动直流电机 | 计划用途；如用于继电器/开关，确认电流与续流 |
+| Brush motor | TSINY TS-25GAH370-20, DC 12.0 V, 300 RPM, 25 mm gearbox, Hall encoder at the back, 6 wires | Confirmed for the brush; 12 V can come straight from the battery; the encoder can measure speed/stall | 6-wire pinout (usually motor +/−, encoder VCC/GND/A/B); shaft diameter (often a 4 mm D-shaft); fit in the orange shaft |
+| Buck converter | Blue adjustable DC-DC, 100 µF/50 V input and 220 µF/35 V output capacitors, looks like an LM2596 | Battery → TT wheel voltage or → 5 V | Real chip; LM2596-type is rated 3 A, about 2 A continuous, too tight for a Pi 4B (5 V / 3 A) |
+| Camera | Hiwonder, board TY-9251-OV5-V1.0, extra 4-pin white socket on the back | Connected to the Pi by ribbon (CSI), matching the Picamera2 code | Exact sensor (treated as OV5647); 4-pin socket use (leave it unconnected); board size and hole spacing |
+| Ultrasonic | HC-SR04, back marked Trig/Rx/SCL, Echo/Tx/SDA, R4/R5 select IIC/UART/1-WIRE (2020 multi-mode version) | Front obstacle/distance | Whether it works at 3.3 V; at 5 V the Echo pin is 5 V and needs a divider (e.g. 1 kΩ/2 kΩ) before the Pi |
+| IR obstacle | MH-Sensor-Series (Flying-Fish), VCC/GND/OUT, comparator + potentiometer | Facing down: table edge; facing forward: close obstacles | Power at 3.3 V so OUT is not 5 V; range set by the potentiometer; dark or shiny surfaces cause false readings |
+| Buzzer | GPIO 12 (pin 32). Beeps once when debris newly appears (80 ms by default, at most once per second) and plays the control page's sounds | `buzzer` in `config.json`: `passive=false` for an active buzzer (sounds when powered), `true` for a passive one (PWM tones, melodies, volume) | A bare buzzer may draw more than a GPIO can supply; use a module with a transistor; set `active_high` to false for a low-level-trigger module |
+| Brush relay | Red 1-channel relay module, JQC-3FF-S-Z (12 VDC coil; contacts 10 A 30 VDC), opto input, high/low trigger jumper, DC+/DC−/IN and COM/NO/NC terminals | Confirmed: GPIO 21 switches the brush power | Jumper must be on H (high trigger); the 12 V coil runs straight from the 11.1 V battery (12.6 V when full is fine) |
+| Stepper board | ULN2003, IN1–IN4, A–D LEDs, 5–12 V, 5-pin socket (usually for a 28BYJ-48) | Low-side switching in one direction only; cannot reverse a DC motor | Planned use; current and flyback if used as a switch |
 
-## 电池与供电
+## Battery and power
 
-电池为3串锂电：标称11.1V，充满约12.6V，放空约9V；3500mAh≈38.9Wh。以下为按此电压的约束，接线前用万用表核对：
+The battery is a 3-series Li-ion pack: 11.1 V nominal, about 12.6 V full, about 9 V empty; 3500 mAh ≈ 38.9 Wh. The limits below follow from that; check them with a multimeter before wiring.
 
-- **滚刷**：TS-25GAH370-20标称12V，可直接由电池经保险丝→实体开关→继电器→CCM6N供电（见下文CCM6N刷子模式）。
-- **黄色TT车轮电机**：常见额定3–6V，**不能**直接接电池电压。L298N压降约1.5–2V，到电机仍约7–10V；靠PWM占空比限压只是权宜，推荐电池→降压模块（按TT额定电压设定）→L298N电机电源。
-- **树莓派4B**：需要5V/3A稳定供电，电池→5V/3A以上降压模块→USB-C或5V脚；不能从L298N板载5V取电。
-- **充电**：只用3S锂电专用充电器（12.6V截止），不在车上无人看管充电。插头3针的定义未核实，不能凭线色接线。
-- 主电源正极先过保险丝和实体总开关，再分到刷子/车轮/Pi三路；各路负极共地（继电器干接点隔离的刷子回路除外）。
+- **Brush**: the TS-25GAH370-20 is rated 12 V and can run from the battery through fuse → main switch → relay → CCM6N (see the CCM6N brush mode below).
+- **Yellow TT wheel motors**: usually rated 3–6 V and must **not** get battery voltage directly. The L298N drops about 1.5–2 V, which still leaves 7–10 V at the motor. Limiting voltage with PWM duty is only a workaround; use battery → buck converter (set to the TT rating) → L298N motor supply.
+- **Raspberry Pi 4B**: needs a stable 5 V / 3 A: battery → 5 V / 3 A+ buck → USB-C or the 5 V pin. Never power it from the L298N's onboard 5 V.
+- **Charging**: only use a 3S Li-ion charger (12.6 V cut-off), and never leave it charging on the car unattended. The 3-pin plug pinout is unverified; do not wire by wire colour.
+- The main positive goes through a fuse and a physical main switch, then splits to brush, wheels and Pi. All negatives share a ground (except the brush circuit, isolated by the relay's dry contact).
 
-### 整车共用一颗电池
+### One battery for the whole car
 
 ```text
-电池+ → 保险丝 → 总开关 ─┬→ 继电器 → CCM6N → 滚刷电机（12V直接用）
-                         ├→ 降压模块A（设为TT额定电压，如6V）→ L298N电机电源 → 4个TT轮
-                         └→ 降压模块B（5V/3A以上）→ 树莓派4B
-电池− → 共地（滚刷回路经继电器干接点隔离）
+Battery+ → fuse → main switch ─┬→ relay → CCM6N → brush motor (12 V direct)
+                               ├→ buck A (set to the TT rating, e.g. 6 V) → L298N motor supply → 4 TT wheels
+                               └→ buck B (5 V / 3 A+) → Raspberry Pi 4B
+Battery− → common ground (brush circuit isolated by the relay dry contact)
 ```
 
-粗估耗电（待实测）：Pi4B+相机5–7W，TT轮间歇平均3–6W，滚刷间歇平均3–8W，合计约10–20W；38.9Wh约可用1.5–3小时。
+Rough power estimate (to be measured): Pi 4B + camera 5–7 W, TT wheels 3–6 W average, brush 3–8 W average, about 10–20 W in total; 38.9 Wh gives roughly 1.5–3 hours.
 
-注意事项：
+Notes:
 
-1. **Pi掉电重启**：电机启动/堵转会拉低电压。Pi用独立降压模块（输入范围覆盖9–12.6V）；L298N与CCM6N电源输入端各并470–1000µF电解电容；软件避免轮刷同一瞬间启动（现有流程为刷子先转、再动轮）。
-2. **电池放电能力**：扫地机替换电池的保护板最大电流未知，滚刷堵转加四轮同时启动可能触发保护断电。先量滚刷堵转电流再定保险丝，暂定5A。
-3. **过放保护**：负载下每串低于约3.3V（总电压约9.9V）即停车充电；之后可加软件电压监测。
-4. **布线**：电机线与Pi/相机线分开走，地线汇于一点。
+1. **Pi brown-out resets**: motor starts and stalls pull the voltage down. Give the Pi its own buck converter (input range covering 9–12.6 V); add a 470–1000 µF electrolytic capacitor at the L298N and CCM6N power inputs; the software never starts wheels and brush at the same instant (the brush starts first).
+2. **Battery discharge limit**: the protection board's maximum current is unknown. A brush stall plus four wheels starting together may trip it. Measure the brush stall current before choosing a fuse; use 5 A for now.
+3. **Over-discharge**: stop and charge when a cell drops below about 3.3 V under load (about 9.9 V in total). Software voltage monitoring can be added later.
+4. **Routing**: run motor wires apart from the Pi/camera wires, and join grounds at one point.
 
-待购/待确认：降压模块×2（可调款给TT轮、5V/3A以上给Pi，如LM2596/XL4015/MP1584类）、保险丝座与保险丝、总开关、电解电容、3S锂电充电器。
+To buy or confirm: two buck converters (adjustable for the TT wheels; 5 V / 3 A+ for the Pi, LM2596/XL4015/MP1584-type), fuse holder and fuses, main switch, electrolytic capacitors, 3S Li-ion charger.
 
-## L298N车轮（BCM编号）
+## L298N wheels (BCM numbering)
 
-2026-11-07按实物接线：ENB由GPIO19改为GPIO13，刷子继电器相应由GPIO13改为GPIO19，同日按实物再改为GPIO21（物理40脚，“电源通断模块”）。[接线PDF](../hardware/wiring/树莓派4B_L298N_双官方原图接线.pdf)仍为旧版（ENB画在物理35脚），以本表为准。实车核对：IN1/IN2/ENA驱动右侧轮、IN3/IN4/ENB驱动左侧轮，左组软件反向（invert）。
+Wired to the car on 2026-11-07: ENB moved from GPIO 19 to GPIO 13, and the brush relay moved to GPIO 21 (pin 40). The [wiring PDF](../hardware/wiring/pi4b-l298n-wiring.pdf) matches this table. Checked on the car: IN1/IN2/ENA drive the right side and IN3/IN4/ENB the left side; the left side is reversed in software (`invert`).
 
-| Pi GPIO | 物理脚 | 模块端口 |
+| Pi GPIO | Pin | Module terminal |
 |---|---:|---|
-| 17 | 11 | IN1右组 |
-| 27 | 13 | IN2右组 |
-| 18 | 12 | ENA右组PWM |
-| 22 | 15 | IN3左组 |
-| 23 | 16 | IN4左组 |
-| 13 | 33 | ENB左组PWM |
-| GND | 6 | GND共地 |
+| 17 | 11 | IN1 right |
+| 27 | 13 | IN2 right |
+| 18 | 12 | ENA right PWM |
+| 22 | 15 | IN3 left |
+| 23 | 16 | IN4 left |
+| 13 | 33 | ENB left PWM |
+| GND | 6 | GND (common ground) |
 
-完整电源/跳帽方案见[Pi4B接线图](../hardware/wiring/树莓派4B_L298N_双官方原图接线.pdf)和[控制说明](../software/metalsweep-control/README_先按顺序测试.md)。外接5V逻辑输入方案只有在确认模块5V-EN稳压跳帽取下时才适用。图示不是任意L298N克隆板的供电保证。
+The power and jumper plan is in the [Pi 4B wiring PDF](../hardware/wiring/pi4b-l298n-wiring.pdf) and the [control guide](../software/metalsweep-control/README.md). The external 5 V logic option only applies when the module's 5V-EN regulator jumper is removed. The drawing is not a power guarantee for every L298N clone.
 
-同侧两台轮电机并联前核对启动/堵转总电流与散热。刷子12V不代表黄色TT电机也能接12V；电机电源不经过Pi供电输出。
+Before paralleling the two motors on one side, check their total start/stall current and cooling. A 12 V brush does not mean the yellow TT motors can take 12 V; motor power never comes from the Pi's supply pins.
 
-## CCM6N刷子模式
+## CCM6N brush mode
 
-当前默认brush_mode=ccm6n_relay。原板负责刷速与方向；额外的3.3V兼容继电器模块负责低频开/关。软件GPIO21（物理40）接其控制输入，模块逻辑供电与有效电平按模块资料接，不能直接驱动裸线圈。
+The default is `brush_mode=ccm6n_relay`. The original board sets brush speed and direction; an extra 3.3 V-compatible relay module switches it on and off. GPIO 21 (pin 40) drives the module input. Power the module logic and set the active level as its datasheet says; never drive a bare relay coil from the Pi.
 
-实物模块（2026-11-07照片）：JQC-3FF-S-Z，线圈12VDC，光耦隔离，高/低电平触发跳线。接法：
+The module on the car (photo 2026-11-07): JQC-3FF-S-Z, 12 VDC coil, opto-isolated, high/low trigger jumper. Wiring:
 
-| 模块端子 | 接到 | 说明 |
+| Module terminal | Connect to | Note |
 |---|---|---|
-| DC+ | 总开关后的电池+（约11.1–12.6V） | 线圈为12V版，不能接Pi的5V/3.3V |
-| DC− | 电池−（与Pi GND共地） | 高电平触发时IN电流经DC−返回，必须共地 |
-| IN | GPIO21（物理40） | config中relay_active_high=true，对应跳线H |
-| 跳线 | H（high） | 不可用L：低电平模式下IN经电阻上拉到DC+（12V），会损坏GPIO |
-| COM / NO | 见下图 | NC不接，断电或程序退出时刷子默认停 |
+| DC+ | Battery+ after the main switch (about 11.1–12.6 V) | 12 V coil; do not use the Pi's 5 V/3.3 V |
+| DC− | Battery− (shared with Pi GND) | In high-trigger mode the IN current returns through DC−, so the grounds must be shared |
+| IN | GPIO 21 (pin 40) | `relay_active_high=true` in the config, matching jumper H |
+| Jumper | H (high) | Never L: in low-level mode IN is pulled up to DC+ (12 V) and would damage the GPIO |
+| COM / NO | See below | Leave NC open, so the brush stops by default when power is lost or the program exits |
 
 ```text
-12V+ → 保险丝/实体电源开关 → 继电器COM
-继电器NO → CCM6N电源+
-12V- → CCM6N电源-
-CCM6N电机输出 → 滚刷电机
+12V+ → fuse / physical power switch → relay COM
+relay NO → CCM6N power+
+12V− → CCM6N power−
+CCM6N motor output → brush motor
 ```
 
-继电器干接点的直流电流/冲击电流额定值应覆盖实际负载。商品图6A是控制器标称，不是电机电流。此方案不对机械继电器发送PWM，不自动调旋钮，不自动改变原拨动开关方向；实际断电后的惯性和控制器残能仍要测试。
+The relay's DC and inrush current ratings must cover the real load. The 6 A in the shop listing is the controller rating, not the motor current. This mode never sends PWM to the mechanical relay, never turns the knob and never flips the board's direction switch. Run-down after power-off and stored energy in the controller still need testing.
 
-备选三信号H桥才使用GPIO24/25方向＋GPIO21 PWM；必须改brush_mode并按相应驱动器核验，不能直接当成CCM6N引脚表。
+The optional three-signal H-bridge uses GPIO 24/25 for direction plus GPIO 21 PWM. It needs `brush_mode=hbridge` and its own driver check; it is not the CCM6N pin map.
 
-## 打印资料
+## Print files
 
-- 当前打印模型：[hardware/cad-v8](../hardware/cad-v8)，包含摄像头支架、滚刷主轴、清扫轮、斜坡和收集盒。
-- V7相机支架、V3刷子件已移至archive；archive里的V4/V5/V7支架螺纹/紧固方式不同，不与V8混装。
-- 没有现场切片G-code；每台打印机按自己的材料/喷嘴预设切片。
+- Current print model: [hardware/cad-v8](../hardware/cad-v8): camera holder, brush shaft, cleaning wheel, ramp and storage box.
+- Camera slot mount: [hardware/camera-slot-mount](../hardware/camera-slot-mount).
+- No G-code is included; slice with your own printer's material and nozzle presets.

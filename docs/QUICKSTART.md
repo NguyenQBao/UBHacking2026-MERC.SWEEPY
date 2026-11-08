@@ -1,16 +1,16 @@
-# 运行流程
+# Quick start
 
-以下相对路径均从仓库根目录执行。Pi用户名示例为pi、地址示例为raspberrypi.local，请用自己的实际地址。私有仓库克隆须使用有权限的GitHub账户。每个前台服务单独用一个终端；只有一个程序可以占用CSI摄像头。
+Run every relative path below from the repository root. The examples use the Pi user `pi` and the address `raspberrypi.local`; replace them with your own. Give each foreground service its own terminal. Only one program at a time can own the CSI camera.
 
-## 1. Pi摄像头与模拟控制
+## 1. Pi camera and simulated control
 
-从Mac将software/metalsweep-control目录传到Pi：
+Copy `software/metalsweep-control` from the Mac to the Pi:
 
 ```bash
 scp -r software/metalsweep-control pi@raspberrypi.local:~/
 ```
 
-Pi终端（先停止旧app.py/rpicam-hello）：
+On the Pi (stop any other camera program, such as `rpicam-hello`, first):
 
 ```bash
 sudo apt update
@@ -19,19 +19,19 @@ cd ~/metalsweep-control
 python3 run.py --hsv 0,220,220
 ```
 
-这是红色测试物模式，不是通用碎片识别；默认模拟，无GPIO输出。不要在尚未核验驱动/电压时添加--hardware。
+This is the red test-object mode, not general debris detection. It runs in simulation by default, with no GPIO output. Do not add `--hardware` until the drivers and voltages have been checked.
 
-Mac另一个终端建立隧道：
+In another Mac terminal, open the tunnel:
 
 ```bash
 ssh -N -L 8091:127.0.0.1:8091 pi@raspberrypi.local
 ```
 
-Mac打开 http://127.0.0.1:8091/ 。无框原图位于 http://127.0.0.1:8091/raw.jpg 。隧道终端保持运行。
+Open http://127.0.0.1:8091/ on the Mac. The unannotated camera image is at http://127.0.0.1:8091/raw.jpg. Keep the tunnel terminal running.
 
-## 2. Mac训练工作台
+## 2. Mac training studio
 
-从仓库根目录，在Mac新终端执行：
+From the repository root, in a new Mac terminal:
 
 ```bash
 cd software/debris-training
@@ -41,13 +41,15 @@ python -m pip install -r requirements-train.txt
 python studio.py --camera-url http://127.0.0.1:8091/raw.jpg
 ```
 
-打开 http://127.0.0.1:8090/ 。只采集/标注可先安装requirements-label.txt，训练前再安装完整依赖。旧说明中的8000端口属于独立诊断app.py；本页统一用8091隧道连接控制程序的原图。
+Open http://127.0.0.1:8090/. For collecting and labelling only, `requirements-label.txt` is enough; install the full requirements before training.
 
-默认workspace在software/debris-training/workspace，已被.gitignore排除。首次下载官方预训练权重需要联网。默认训练30轮、batch4、imgsz640、自动选择CUDA/MPS/CPU。训练期间可以继续标注，当前轮的数据快照不会改变。
+The default workspace is `software/debris-training/workspace`, excluded by `.gitignore`. The first run downloads the official pretrained weights, so it needs internet. Training defaults: 30 epochs, batch 4, imgsz 640, patience 50, and automatic CUDA/MPS/CPU selection. You can keep labelling during training; the snapshot of the current round does not change.
 
-## 3. 现场数据与公开标注
+Photos can also come from the Pi data collector: see [software/debris-collector](../software/debris-collector).
 
-先按[data说明](DATA.md)采集实际纸团/瓶盖。COCO格式转换：
+## 3. Field data and public annotations
+
+Collect real debris first, following the [data plan](DATA.md). To convert COCO-format annotations:
 
 ```bash
 python import_coco.py --annotations /path/to/TACO/data/annotations.json --list-categories
@@ -55,12 +57,12 @@ python import_coco.py --annotations /path/to/TACO/data/annotations.json --images
 python studio.py --root ./workspace_coco
 ```
 
-以上路径是待替换示例，不是包内数据。新工作区默认预填框、等待人工确认；公开图只作为train，现场数据提供独立val/test。已有工作区合并等细节见[COCO导入说明](../software/debris-training/README_COCO标注转换.md)。
+These paths are placeholders, not files in this repository. A new workspace gets pre-filled boxes that wait for human review. Public images go to train only; your own field data provides separate val/test sets. For merging into an existing workspace, see the [COCO import guide](../software/debris-training/COCO_IMPORT.md).
 
-## 4. 标定与真实控制
+## 4. Calibration and real control
 
-测距、实测车速、轮子方向和刷子驱动逐项验证后，再修改config.json对应的确认项。现有标定工具用6个手动点，未实现自动棋盘格/ArUco。详细指令和接线条件见[联动说明](../software/metalsweep-control/README_先按顺序测试.md)。
+Verify distance mapping, measured speed, wheel directions and the brush driver one by one, then set the matching `*_verified` flags in `config.json`. Ground calibration uses 6 or more hand-measured points; automatic chessboard/ArUco calibration is not implemented. Commands and wiring conditions are in the [control guide](../software/metalsweep-control/README.md).
 
-CCM6N原旋钮调速；默认软件配合额外继电器做开/关，不能把电位器线直接接Pi。没有继电器且刷子接口未核验时，先使用--wheels-only。
+The CCM6N brush board keeps its own speed knob. By default the software switches it on and off through an extra relay. Never connect the potentiometer wires directly to the Pi. Without a relay, or before the brush interface is verified, use `--wheels-only`.
 
-训练模型必须含debris类别。PT或NCNN推理性能需要在实际Pi4B测试；NCNN导出输入尺寸与运行时imgsz保持一致。当前训练默认640、控制程序默认320，部署前请先在同一验证集比较，再统一导出和推理配置。
+The trained model must contain the `debris` class. Test inference speed on the real Pi 4B. The NCNN export has a fixed 640 input, so the runtime `imgsz` does not change its results.

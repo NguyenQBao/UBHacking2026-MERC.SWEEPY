@@ -201,7 +201,7 @@ def main():
         print(f'Imported {len(report["imported"])} images into {args.out}; skipped={report["skipped"]}')
         print('All imported images are TRAIN only. Labels '+('accepted.' if args.accept_labels else 'prefilled; review and save them in the studio.'))
     except (ValueError, KeyError, OSError) as error:
-        p.exit(1, f'未导入：{error}\n')
+        p.exit(1, f'Not imported: {error}\n')
 
 
 if __name__ == '__main__':

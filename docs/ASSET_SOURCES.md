@@ -1,35 +1,35 @@
-# 来源、依赖与材料范围
+# Sources, dependencies and scope
 
-本仓库整理本项目已有代码、参数化CAD源文件、STL、图纸及说明。没有替项目选择新的开源许可证；第三方库、图片和数据集遵循各自条款，不因本次整理被重新授权。
+This repository collects the project's code, parametric CAD sources, STL files, drawings and guides. No new open-source licence has been chosen for the project; third-party libraries, images and datasets keep their own terms and are not relicensed here.
 
-## 官方硬件图片与接线参考
+## Official hardware images and wiring references
 
-hardware/wiring中Raspberry Pi 4B照片/40针引脚图来自Raspberry Pi官方，SunFounder模块照片来自SunFounder官方文档。接线表和图纸排版是项目连接方案；官方图片不是对该接线方案的认证。
+The Raspberry Pi 4B photo and 40-pin header image in `hardware/wiring` come from Raspberry Pi; the SunFounder module photos come from SunFounder's official documentation. The wiring table and drawing layout are this project's connection plan; the official images do not certify it.
 
 - https://www.raspberrypi.com/products/raspberry-pi-4-model-b/
 - https://www.raspberrypi.com/documentation/computers/raspberry-pi.html
 - https://docs.sunfounder.com/projects/3in1-kit-v2/en/latest/components/component_l298n_module.html
 - https://www.st.com/resource/en/datasheet/l298.pdf
 
-先前用户上传的个人照片、网页截图、聊天附件没有纳入本仓库。docs/concept中的机器人概念图是设计示意，不是已装配实车证据。
+Personal photos, web screenshots and chat attachments shared during the project are not included. The robot concept image in `docs/concept` is a design sketch, not evidence of the assembled car.
 
-## 软件与打印参考
+## Software and printing references
 
-- Ultralytics：https://docs.ultralytics.com/ ，训练依赖固定8.4.194；按其AGPL-3.0或商业许可使用。
-- OpenCV：https://docs.opencv.org/ ，图像处理、平面单应性与标定原理。
-- Picamera2：https://github.com/raspberrypi/picamera2
-- GPIO Zero：https://gpiozero.readthedocs.io/en/stable/api_output.html
-- Prusa：https://help.prusa3d.com/article/modeling-with-3d-printing-in-mind_164135
-- Arducam OV5647模块参考：https://www.arducam.com/raspberry-pi-camera/
+- Ultralytics: https://docs.ultralytics.com/ — training uses 8.4.194, under its AGPL-3.0 or commercial licence.
+- OpenCV: https://docs.opencv.org/ — image processing, ground homography and calibration.
+- Picamera2: https://github.com/raspberrypi/picamera2
+- GPIO Zero: https://gpiozero.readthedocs.io/en/stable/api_output.html
+- Prusa: https://help.prusa3d.com/article/modeling-with-3d-printing-in-mind_164135
+- Arducam OV5647 module reference: https://www.arducam.com/raspberry-pi-camera/
 
-CAD依赖与版本见各目录requirements及源码；图纸排版使用ReportLab/PyMuPDF，部分绘图脚本依赖Mac字体，其他系统需指定可用中文字体。
+CAD dependencies and versions are in each folder's requirements and source files.
 
-## 数据集
+## Datasets
 
-仓库不包含第三方训练图像/标注副本、用户训练照片或权重。TACO转换报告会保留源标注哈希、类别和许可元数据，图片与数据集的条款需按来源核对；不要将仓库代码许可等同于全部照片许可。
+The repository holds no copies of third-party training images or annotations, no team training photos and no weights. The TACO conversion report keeps the source annotation hash, categories and licence metadata. Check image and dataset terms at the source; the code licence does not cover the photos.
 
 - https://github.com/pedropro/TACO
 - https://ai.bu.edu/zerowaste/
 - https://github.com/garythung/trashnet
 
-原始生成资料的相对位置与SHA256记录在source-files.json。整理时将机器本地路径改为仓库路径、私人局域网IP改为raspberrypi.local；运行服务仍需使用当前设备的真实地址或SSH隧道。
+When the files were first imported, local machine paths were replaced by repository paths and private LAN addresses by `raspberrypi.local`; to run the services, use the device's real address or an SSH tunnel.

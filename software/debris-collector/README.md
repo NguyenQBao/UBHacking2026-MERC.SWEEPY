@@ -1,62 +1,62 @@
-# 数据采集后台（树莓派）
+# Pi data collector
 
-只负责**拍照采集**，与训练工作台分开：不标注、不训练、不控制电机。在树莓派 VNC 的浏览器里操作，不需要 SSH 隧道或 Mac。照片按 用途/场景 分类存放在树莓派，拍完导出一个 ZIP，在 Mac 训练工作台“导入采集包”。
+Only **takes photos**, separate from the training studio: no labelling, no training, no motor control. Use it in the Pi's VNC browser; no SSH tunnel or Mac is needed. Photos are stored on the Pi sorted by split/scene. When you are done, export a ZIP and use **Import collection ZIP** in the Mac training studio.
 
-## 启动
+## Start
 
-相机画面默认取自正在运行的车子后台（`run.py`，127.0.0.1:8091），两者可同时运行：
+By default the camera image comes from the running car program (`run.py`, 127.0.0.1:8091); both can run at the same time:
 
 ```bash
 cd ~/debris-collector && python3 collect.py
 ```
 
-浏览器打开 http://127.0.0.1:8092/ 。照片存到 `~/metalsweep-dataset`（`--root` 可改）。
+Open http://127.0.0.1:8092/ in the browser. Photos are saved to `~/metalsweep-dataset` (change with `--root`).
 
-不开车子后台时，可让采集后台直接占用CSI相机（同一时间只能一个程序占用相机）：
+Without the car program, the collector can own the CSI camera itself (only one program can own the camera at a time):
 
 ```bash
-python3 collect.py --picamera            # 画面倒置再加 --rotate180
+python3 collect.py --picamera            # add --rotate180 if the image is upside down
 ```
 
-## 页面操作
+## Page controls
 
-| 控件 | 作用 |
+| Control | What it does |
 |---|---|
-| Live camera | 实时预览（约每秒2张），只看不存 |
-| Scene | 场景名称（字母/数字/_/-），换桌面、地点或光线才换名 |
-| Split | train / val / test；同一场景只能属于一种用途，程序会拒绝跨用途 |
-| No debris in this shot | 勾选表示这张是空桌面（约占20%） |
-| Capture（Enter键） | 保存当前画面；完全相同的画面不会重复保存 |
-| Undo last | 删除最后一张 |
-| Progress | 各用途张数、首轮目标（30/10/10）、空图比例、场景数 |
-| Scenes | 每个场景的用途与张数 |
-| Download collection ZIP | 导出全部照片+manifest.json，保存到树莓派的下载文件夹 |
+| Live camera | Live preview (about 2 frames per second); view only, nothing saved |
+| Scene | Scene name (letters/digits/_/-); change it only when the floor, place or lighting changes |
+| Split | train / val / test; one scene can belong to only one split, the program refuses otherwise |
+| No debris in this shot | Tick for an empty floor (about 20% of photos) |
+| Capture (Enter) | Saves the current frame; an identical frame is never saved twice |
+| Undo last | Deletes the last photo |
+| Progress | Count per split, first-round targets (30/10/10), share of empty photos, number of scenes |
+| Scenes | Split and photo count of each scene |
+| Download collection ZIP | Exports all photos + `manifest.json` to the Pi's Downloads folder |
 
-## 传到 Mac 并导入
+## Moving to the Mac and importing
 
-在 Mac 终端复制（文件名按实际修改）：
+Copy it in a Mac terminal (adjust the file name):
 
 ```bash
-scp pi@<树莓派IP>:~/Downloads/metalsweep_collection_*.zip ~/Downloads/
+scp pi@<pi-address>:~/Downloads/metalsweep_collection_*.zip ~/Downloads/
 ```
 
-或直接复制整个采集文件夹：`scp -r pi@<树莓派IP>:~/metalsweep-dataset ~/Downloads/`。
+Or copy the whole collection folder: `scp -r pi@<pi-address>:~/metalsweep-dataset ~/Downloads/`.
 
-Mac 训练工作台第1区“导入采集包”选择该ZIP；或命令行：
+In the Mac training studio, choose the ZIP under **Import collection ZIP** in section 1, or on the command line:
 
 ```bash
 python workflow.py import-collection --source ~/Downloads/metalsweep_collection_XXXX.zip
 ```
 
-导入保留场景与用途，照片为“未确认”，仍需在工作台逐张画框或确认无碎片后才会进入训练。重复导入同一包会自动跳过已有照片。
+Scenes and splits are kept. Photos arrive unconfirmed: draw boxes or confirm "no debris" for each one in the studio before it enters training. Importing the same ZIP again skips photos that already exist.
 
-## 存储结构
+## Storage layout
 
 ```text
 ~/metalsweep-dataset/
-  manifest.json                       # 每张：file, scene, split, empty, sha256, captured
+  manifest.json                       # per photo: file, scene, split, empty, sha256, captured
   images/train/deskA_day/0001.jpg
   images/val/deskB_day/0001.jpg
 ```
 
-仅用Python标准库（`--picamera`时需要系统自带的Picamera2）。测试：`python3 -m unittest test_collect`。
+Python standard library only (`--picamera` needs the system Picamera2). Test: `python3 -m unittest test_collect`.

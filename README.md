@@ -1,64 +1,63 @@
 # METALSWEEP
 
-桌面碎片收集机器人原型 / Desktop debris collection robot prototype
+A small robot car that finds metal debris on the floor, drives to it and sweeps it into its scoop.
 
-使用 **Raspberry Pi 4B + OV5647 单摄像头 + L298N 左右轮控制 + CCM6N 滚刷调速板**，目标为**成团纸屑与瓶盖**。第一版视觉模型统一使用 `debris` 一个类别。
+It runs on a **Raspberry Pi 4B** with one **OV5647 camera**, an **L298N** for the left and right wheels, and a **CCM6N** brush board switched by a relay. A single-class YOLO11n model (`debris`) runs on the Pi as NCNN; on the car it detects brass tubes at about 0.9 confidence on light floors.
 
-本仓库整理现有软件、打印模型、接线与装配资料。已实现训练/标注工具和有时限的联动控制代码；**尚未完成实车自主收集验收，不包含已训练好的现场模型或准确率承诺**。
+This repository holds the software, print models, wiring and assembly material. Training/labelling tools and time-limited closed-loop control are implemented and tested on the car (detection, calibration, tracking and the final push). **No trained field model is included, and there is no accuracy promise.**
 
-## 从这里开始
+## Start here
 
-1. [运行与训练流程](docs/QUICKSTART.md)：Mac标注/训练，Pi采集/推理/控制。
-2. [待测尺寸与控制参数](docs/MEASUREMENTS.md)：距离映射、前进位移、转向和进盒试验。
-3. [硬件与驱动边界](docs/HARDWARE.md)：L298N车轮、CCM6N加继电器开关方案。
-4. [数据采集与COCO转换](docs/DATA.md)：纸团/瓶盖、50张迭代、TACO筛选。
-5. [版本及验证状态](docs/STATUS.md)：区分软件测试、网格检查与实物验证。
+1. [Quick start](docs/QUICKSTART.md): label and train on the Mac; collect, detect and drive on the Pi.
+2. [Measurements](docs/MEASUREMENTS.md): distance mapping, step distance, turning and collection trials.
+3. [Hardware and wiring](docs/HARDWARE.md): L298N wheels, CCM6N + relay brush, power.
+4. [Data plan and COCO import](docs/DATA.md): what to photograph, batches of 50, TACO filters.
+5. [Status](docs/STATUS.md): what is software-tested, mesh-checked or verified on the car.
 
-## 目录
+## Contents
 
-| 位置 | 内容 | 使用状态 |
+| Folder | Contents | Status |
 |---|---|---|
-| [software/debris-training](software/debris-training) | Mac网页采集、框标注、累计YOLO训练、评估、NCNN导出、COCO导入 | 当前训练工具 |
-| [software/debris-collector](software/debris-collector) | 树莓派专用拍照采集网页：按场景/用途分类、进度统计、导出ZIP给训练工作台导入 | 与训练分离，仅标准库 |
-| [software/metalsweep-control](software/metalsweep-control) | CSI图像、目标检测、地面映射、左右轮与刷子有时限控制 | 默认模拟，核验后才启用GPIO |
-| [software/debris-detector-pi4](software/debris-detector-pi4) | 颜色/静态背景检测网页、原图接口 | 独立诊断工具；背景法要求车/光照固定 |
-| [hardware/cad-v8](hardware/cad-v8) | 当前模型：摄像头支架（竖杆/横杆/前部件）、滚刷主轴、清扫轮、斜坡、收集盒，共7个STL | 网格已检查，尚未打印试装 |
-| [hardware/camera-slot-mount](hardware/camera-slot-mount) | 摄像头插槽支架：电路板从上插入，套在主柱子顶端，30°俯角；参数化生成脚本 | 板尺寸按25×24mm默认，待实物测量 |
-| [hardware/wiring](hardware/wiring) | Pi4B/L298N官方原图接线图与排版源码 | 电压/跳帽按实物核对 |
-| [docs/camera-orientation](docs/camera-orientation) | 摄像头朝向概念图 | 概念参考 |
-| [archive](archive) | 较早版本的底盘、支架（含V7支架、V3刷子件）、装配图与算法演示 | 历史参考，不混装不同版本零件 |
-| [extras](extras) | 独立卷纸盒、粘贴式卷纸支架 | 与机器人分开的附加项目 |
+| [software/debris-training](software/debris-training) | Mac studio: capture, box labelling, cumulative YOLO training, evaluation, NCNN export, COCO import | Current training tool |
+| [software/debris-collector](software/debris-collector) | Pi photo collector: sorted by scene/split, progress, ZIP export for the studio | Separate from training; standard library only |
+| [software/metalsweep-control](software/metalsweep-control) | CSI camera, detection, ground mapping, time-limited wheel and brush control, Auto nearest / all in view, sounds | Simulation by default; GPIO only after verification |
+| [hardware/cad-v8](hardware/cad-v8) | Current model: camera holder (post/bar/front), brush shaft, cleaning wheel, ramp, storage box; 7 STL files | Mesh-checked; box/ramp/shaft test-fitted |
+| [hardware/camera-slot-mount](hardware/camera-slot-mount) | Camera slot mount on the main post, 30° down; parametric generator | Board size 25×24 mm by default, to be measured |
+| [hardware/wiring](hardware/wiring) | Pi 4B / L298N wiring on official photos, and its generator | Check voltages and jumpers on the real parts |
+| [docs/poster](docs/poster) | System flow diagram for the poster | — |
 
-## 当前联动设计
+## How the car collects
 
 ```mermaid
 flowchart LR
-  A[停车后识别] --> B[连续新帧确认]
-  B --> C[地面坐标 X/Y]
-  C --> D{方向已对准?}
-  D -- 否 --> E[短转向后停车]
+  A[Stop and detect] --> B[Confirm on fresh frames]
+  B --> C[Ground X/Y]
+  C --> D{Aligned?}
+  D -- No --> E[Short turn, stop]
   E --> A
-  D -- 是 --> F{到达收集区?}
-  F -- 否 --> G[短前进后停车]
+  D -- Yes --> F{In collect zone?}
+  F -- No --> G[Short step forward, stop]
   G --> A
-  F -- 是 --> H[刷子预转]
-  H --> I[有时限的轮刷同动]
-  I --> J[车停 刷子收尾]
-  J --> K[全部停止 人工核验进盒]
+  F -- Yes --> H[Brush spin-up]
+  H --> I[Time-limited push with brush]
+  I --> J[Wheels stop, brush tail]
+  J --> K{Target gone?}
+  K -- Yes --> L[Collected + sound]
+  K -- No --> M[Missed: stop]
 ```
 
-当前采用固定相机和平面标定。目标消失不等于已进盒；没有桌沿/碰撞/堵转感知，实物运动测试先使用有围挡的地面。软件超时关闭输出不能代替实体电源开关。
+The camera is fixed and calibrated to the floor plane. A target leaving the image does not prove it entered the box. There is no table-edge, collision or stall sensing, so test on a floor with barriers. A software timeout does not replace a physical power switch.
 
-## 当前模型
+## Current model
 
-打印文件见 [hardware/cad-v8](hardware/cad-v8)：收集盒装在底盘前端下方，斜坡接在盒前缘，滚刷主轴由减速电机直接驱动，把碎片扫上斜坡进盒。
+The print files are in [hardware/cad-v8](hardware/cad-v8). The storage box sits under the front of the chassis, the ramp joins its front edge, and the brush shaft, driven directly by a gear motor, sweeps debris up the ramp into the box.
 
-![V8收集机构试装照片](hardware/cad-v8/assembly_photo.jpg)
+![V8 collection mechanism test fit](hardware/cad-v8/assembly_photo.jpg)
 
-此前的V7摄像头支架与V3刷子件已移至 [archive/camera-mount-v7](archive/camera-mount-v7) 和 [archive/brush-collector-v3](archive/brush-collector-v3)，不与V8零件混装。尺寸确认状态见[尺寸记录](docs/MEASUREMENTS.md)。
+Older chassis, mounts and demos were removed from the repository; they remain in the git history.
 
-## 文件与来源
+## Files and sources
 
-不上传虚拟环境、采集照片、训练权重、运行缓存、个人网络地址、密码或第三方数据集。源文件清单见 [source-files.json](docs/source-files.json)，最终发布文件校验见 [publication-manifest.json](docs/publication-manifest.json)。重复ZIP和可重新生成的10MB装配SVG未重复纳入。
+Virtual environments, collected photos, trained weights, runtime caches, personal network addresses, passwords and third-party datasets are not uploaded. The release file checksums are in [publication-manifest.json](docs/publication-manifest.json); check them with `python tools/check_repository.py`.
 
-外部图像、数据集、依赖与参考资料见 [ASSET_SOURCES.md](docs/ASSET_SOURCES.md)。本次整理没有为第三方内容或项目代码重新指定许可证。
+External images, datasets, dependencies and references are listed in [ASSET_SOURCES.md](docs/ASSET_SOURCES.md). No licence has been chosen for third-party content or the project code.
