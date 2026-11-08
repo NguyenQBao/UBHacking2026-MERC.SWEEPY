@@ -127,6 +127,17 @@ class Tests(unittest.TestCase):
         self.tick([(0, 150)])
         self.assertEqual(self.controller.status, 'MAX_TARGETS_REACHED'); self.assertFalse(self.controller.auto)
 
+    def test_volume_change_keeps_auto_running(self):
+        self.arm(); self.observe((0, 200), 1)
+        self.controller.set_setting('buzzer_volume', .3)
+        self.assertTrue(self.controller.auto); self.assertEqual(self.cfg['buzzer_volume'], .3)
+        with self.assertRaises(ValueError): self.controller.set_setting('buzzer_volume', .9)
+        self.controller.set_setting('buzzer_enabled', False)
+        self.assertTrue(self.controller.auto); self.assertIs(self.cfg['buzzer_enabled'], False)
+        with self.assertRaises(ValueError): self.controller.set_setting('buzzer_enabled', 1)
+        self.controller.set_setting('wheel_speed', .4)
+        self.assertFalse(self.controller.auto)
+
     def test_final_push_too_long_refuses_to_move(self):
         self.cfg['forward_mm_per_second'] = 20
         self.arm(); self.observe((0, 55))
@@ -313,11 +324,23 @@ class BuzzerTests(unittest.TestCase):
             def close(self): pass
         dev = Dev()
         b = Buzzer(cfg, hardware=True, factory=lambda: dev)
+        values = []
+        orig = Dev.__setattr__
+        def spy(self_, k, v):
+            orig(self_, k, v)
+            if k == 'value' and v: values.append(v)
+        Dev.__setattr__ = spy
+        cfg['buzzer_volume'] = .25
         b.play('success', wait=True)
+        self.assertEqual(set(values), {.25})
         self.assertEqual(log, [hz for hz, _ in SOUNDS['success'] if hz])
         self.assertEqual(dev.value, 0); self.assertEqual((b.sound_seq, b.sound_name), (1, 'success'))
         self.assertFalse(b.playing)
         with self.assertRaises(ValueError): b.play('nope')
+        values.clear(); cfg['buzzer_enabled'] = False
+        b.play('success', wait=True); b.update(False); b.update(True)
+        self.assertEqual(values, [])  # muted: nothing ever switches the buzzer on
+        cfg['buzzer_enabled'] = True
         b.play('birthday'); b.stop(); time.sleep(.05)
         self.assertEqual(dev.value, 0); self.assertFalse(b.playing)
 

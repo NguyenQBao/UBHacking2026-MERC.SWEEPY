@@ -39,5 +39,7 @@
   "imgsz": 320,
   "ground_margin_px": 0,
   "max_targets": 10,
+  "buzzer_volume": 0.4,
+  "buzzer_enabled": true,
   "rotate180": false
 }

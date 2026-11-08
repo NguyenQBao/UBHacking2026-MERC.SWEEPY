@@ -43,7 +43,10 @@ select{font-size:17px;padding:10px;border-radius:8px}.rec{border-collapse:collap
 <p><a href="/raw.jpg" download="calibration.jpg">Save raw image for calibration</a></p></section>
 
 <section><h2>Sound</h2>
+<p><label><input type="checkbox" id="buzzer_enabled"> <b>All sounds on</b></label> <span id="soundState" class="badge">–</span> <span class="hint">Untick to silence every beep and melody (car and this computer). Detection, Auto and STOP keep working.</span></p>
 <button data-sound="test">Test sound</button><button data-sound="success">Collected</button><button data-sound="miss">Missed</button><button data-sound="all_clear">All clear</button><button data-sound="birthday">Happy Birthday</button><span id="extraSounds"></span>
+<div class="row"><label for="buzzer_volume">Buzzer volume</label><input type="range" id="buzzer_volume" min="0.25" max="0.5" step="0.05"><span class="val" data-for="buzzer_volume">–</span></div>
+<p class="hint">Best range 0.25–0.5 (0.5 = loudest). Passive buzzer only; an active buzzer has one fixed volume. Click Save as default (Wheels section) to keep it.</p>
 <p><label><input type="checkbox" id="localSound" checked> Also play on this computer</label> <span id="buzzerType" class="hint"></span></p>
 <p class="hint">Collected / Missed / All clear play automatically during Auto. STOP cuts the sound too.</p>
 </section>
@@ -53,16 +56,18 @@ const token='__TOKEN__', view=document.querySelector('#view'), error=document.qu
 async function send(body){try{const r=await fetch('/command',{method:'POST',headers:{'Content-Type':'application/json','X-Control-Token':token},body:JSON.stringify(body),signal:AbortSignal.timeout(1500)});const d=await r.json();if(!r.ok)throw Error(d.error);error.textContent='';return true}catch(e){error.textContent=e.message;return false}}
 const command=c=>send({command:c});
 document.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=>command(b.dataset.cmd));
+const soundBox=document.querySelector('#buzzer_enabled');
+soundBox.onchange=()=>send({command:'set',key:'buzzer_enabled',value:soundBox.checked});
 document.querySelectorAll('[data-auto]').forEach(b=>b.onclick=()=>{unlockAudio();send({command:'auto',mode:b.dataset.auto})});
 document.querySelectorAll('[data-sound]').forEach(b=>b.onclick=()=>{unlockAudio();send({command:'sound',name:b.dataset.sound})});
 let audio=null,sounds={},soundSeq=null;
 function unlockAudio(){try{audio=audio||new AudioContext();audio.resume()}catch(e){}}
-function playLocal(name){const notes=sounds[name];if(!audio||!notes||!document.querySelector('#localSound').checked)return;
+function playLocal(name){const notes=sounds[name];if(!audio||!notes||!soundBox.checked||!document.querySelector('#localSound').checked)return;
   let t=audio.currentTime+.02;for(const [hz,sec] of notes){if(hz>0){const o=audio.createOscillator(),g=audio.createGain();o.type='square';o.frequency.value=hz;
-  g.gain.setValueAtTime(.06,t);g.gain.setValueAtTime(0,t+sec*.95);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+sec)}t+=sec}}
+  g.gain.setValueAtTime(.12*Number(document.querySelector('#buzzer_volume').value||.4),t);g.gain.setValueAtTime(0,t+sec*.95);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+sec)}t+=sec}}
 document.querySelector('#brushTest').onclick=()=>send({command:'brush_test',seconds:Number(document.querySelector('#brushSeconds').value)});
 document.querySelector('#save').onclick=async()=>{if(await send({command:'save'})){const s=document.querySelector('#saved');s.textContent='Saved to config.json';setTimeout(()=>s.textContent='',3000)}};
-const sliders=['wheel_speed','move_seconds','turn_speed','turn_seconds'];
+const sliders=['wheel_speed','move_seconds','turn_speed','turn_seconds','buzzer_volume'];
 let loaded=false;
 const show=k=>document.querySelector(`[data-for=${k}]`).textContent=Number(document.getElementById(k).value).toFixed(2);
 sliders.forEach(k=>{const el=document.getElementById(k);el.oninput=()=>show(k);el.onchange=()=>send({command:'set',key:k,value:Number(el.value)})});
@@ -71,7 +76,7 @@ addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();command('
   const tag=document.activeElement&&document.activeElement.tagName;
   if(keys[e.key]&&!e.repeat&&tag!=='INPUT'&&tag!=='SELECT'){e.preventDefault();command(keys[e.key])}});
 const RECOMMENDED={wheel_speed:.5,move_seconds:.1,turn_speed:.5,turn_seconds:.1};
-document.querySelector('#recommended').onclick=async()=>{for(const k of sliders){document.getElementById(k).value=RECOMMENDED[k];show(k);if(!await send({command:'set',key:k,value:RECOMMENDED[k]}))return}};
+document.querySelector('#recommended').onclick=async()=>{for(const k of Object.keys(RECOMMENDED)){document.getElementById(k).value=RECOMMENDED[k];show(k);if(!await send({command:'set',key:k,value:RECOMMENDED[k]}))return}};
 addEventListener('blur',()=>command('stop'));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)command('stop')});
 setInterval(()=>{if(!document.hidden&&document.hasFocus())command('heartbeat')},500);
@@ -82,6 +87,8 @@ function render(s){
   if(!s.brush_enabled){b.textContent='DISABLED (--wheels-only)';b.className='badge na'}
   else{const on=s.motors&&s.motors[2]!==0;b.textContent=on?'ON':'OFF';b.className='badge '+(on?'on':'off')}
   document.querySelector('#brushMode').textContent='mode: '+s.brush_mode;
+  if(s.settings){const on=s.settings.buzzer_enabled;if(document.activeElement!==soundBox)soundBox.checked=on;
+    const st=document.querySelector('#soundState');st.textContent=on?'ON':'MUTED';st.className='badge '+(on?'on':'na')}
   if(s.sounds&&!Object.keys(sounds).length){sounds=s.sounds;const box=document.querySelector('#extraSounds');
     for(const name of Object.keys(sounds)){if(document.querySelector(`[data-sound="${name}"]`))continue;
       const b=document.createElement('button');b.textContent=name.replace(/_/g,' ');b.dataset.sound=name;

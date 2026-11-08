@@ -186,6 +186,8 @@ class Handler(BaseHTTPRequestHandler):
                 app.buzzer.play(body['name'])
             elif command == 'set':
                 c.set_setting(body['key'], body['value'])
+                if body['key'] == 'buzzer_enabled' and not body['value']:
+                    app.buzzer.stop()
             elif command == 'brush_test':
                 c.brush_test(body['seconds'])
             elif command == 'save':

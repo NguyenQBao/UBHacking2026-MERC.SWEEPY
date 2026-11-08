@@ -41,10 +41,12 @@ def validate(cfg):
         'observation_timeout': (.2, 5), 'operator_timeout': (1, 5),
         'max_cycle_seconds': (5, 120), 'max_steps': (1, 100),
         'stable_frames': (2, 10), 'imgsz': (64, 1280), 'ground_margin_px': (0, 800),
-        'max_targets': (1, 50),
+        'max_targets': (1, 50), 'buzzer_volume': (.05, .5),
     }
     cfg.setdefault('ground_margin_px', 0)
     cfg.setdefault('max_targets', 10)
+    cfg.setdefault('buzzer_volume', .4)
+    cfg.setdefault('buzzer_enabled', True)
     for key, (low, high) in bounds.items():
         v = cfg[key]
         if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not low <= v <= high:
@@ -55,7 +57,8 @@ def validate(cfg):
     if cfg['center_tolerance_mm'] >= cfg['half_brush_mm'] or cfg['collect_y_mm'] >= cfg['max_y_mm']:
         raise ValueError('Invalid brush / distance limits')
     for key in ('wheel_driver_verified', 'brush_driver_verified', 'directions_verified',
-                'ground_calibration_verified', 'speed_calibration_verified', 'supervised_clear_floor', 'rotate180', 'relay_active_high'):
+                'ground_calibration_verified', 'speed_calibration_verified', 'supervised_clear_floor', 'rotate180', 'relay_active_high',
+                'buzzer_enabled'):
         if type(cfg[key]) is not bool:
             raise ValueError(f'{key} must be boolean')
     if cfg['brush_mode'] not in ('ccm6n_relay', 'hbridge'):
@@ -125,7 +128,7 @@ class Buzzer:
     """
     def __init__(self, cfg, hardware=False, clock=time.monotonic, factory=None):
         b = cfg['buzzer']
-        self.cfg, self.clock = b, clock
+        self.cfg, self.root, self.clock = b, cfg, clock
         self.device = None
         self.seen = False
         self.last = -1e9
@@ -145,11 +148,12 @@ class Buzzer:
     def _tone(self, hz):
         if self.device is None:
             return
-        if hz <= 0:
+        if hz <= 0 or not self.root.get('buzzer_enabled', True):
             self.device.off()
         elif self.cfg['passive']:
+            # PWM duty cycle is the loudness of a passive piezo; 0.5 is the maximum.
             self.device.frequency = hz
-            self.device.value = .5
+            self.device.value = self.root.get('buzzer_volume', .4)
         else:
             self.device.value = 1
 
@@ -430,14 +434,15 @@ class Controller:
             self.ready_at = self.clock() + seconds + self.cfg['settle_seconds']
             self.status = 'BRUSH_TEST'
 
-    TUNABLE = ('wheel_speed', 'turn_speed', 'move_seconds', 'turn_seconds')
+    TUNABLE = ('wheel_speed', 'turn_speed', 'move_seconds', 'turn_seconds', 'buzzer_volume', 'buzzer_enabled')
 
     def set_setting(self, key, value):
         """Change one tunable value at runtime; same bounds as config validation."""
         if key not in self.TUNABLE:
             raise ValueError('Setting not adjustable')
         with self.lock:
-            self.stop()
+            if not key.startswith('buzzer_'):  # sound settings may change during Auto; motion settings stop first
+                self.stop()
             validate(dict(self.cfg, **{key: value}))
             self.cfg[key] = value
 
