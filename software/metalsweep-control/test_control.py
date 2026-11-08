@@ -344,8 +344,11 @@ class BuzzerTests(unittest.TestCase):
             if k == 'value' and v: values.append(v)
         Dev.__setattr__ = spy
         cfg['buzzer_volume'] = .25
+        offs = []
+        Dev.off = lambda self_: (offs.append(1), orig(self_, 'value', 0))
         b.play('success', wait=True)
         self.assertEqual(set(values), {.25})
+        self.assertGreaterEqual(len(offs), len(SOUNDS['success']))  # off after every note
         self.assertEqual(log, [hz for hz, _ in SOUNDS['success'] if hz])
         self.assertEqual(dev.value, 0); self.assertEqual((b.sound_seq, b.sound_name), (1, 'success'))
         self.assertFalse(b.playing)

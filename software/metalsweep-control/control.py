@@ -95,7 +95,10 @@ SOUNDS = {
     'success': [(784, .1), (0, .03), (988, .1), (0, .03), (1319, .3)],
     'miss': [(392, .2), (0, .05), (262, .4)],
     'all_clear': [(523, .1), (659, .1), (784, .1), (0, .05), (1047, .45)],
-    'birthday': [(392, .25), (392, .25), (440, .5), (392, .5), (523, .5), (494, 1.0)],
+    'birthday': [(392, .25), (392, .25), (440, .5), (392, .5), (523, .5), (494, 1.0),
+                 (392, .25), (392, .25), (440, .5), (392, .5), (587, .5), (523, 1.0),
+                 (392, .25), (392, .25), (784, .5), (659, .5), (523, .5), (494, .5), (440, 1.0),
+                 (698, .25), (698, .25), (659, .5), (523, .5), (587, .5), (523, 1.0)],
 }
 
 
@@ -152,6 +155,8 @@ class Buzzer:
             self.device.off()
         elif self.cfg['passive']:
             # PWM duty cycle is the loudness of a passive piezo; 0.5 is the maximum.
+            # Silence before changing pitch, as the rover buzzer.py does (no glide between notes).
+            self.device.value = 0
             self.device.frequency = hz
             self.device.value = self.root.get('buzzer_volume', .4)
         else:
@@ -186,9 +191,14 @@ class Buzzer:
                 for hz, seconds in SOUNDS[name]:
                     if cancel.is_set():
                         break
+                    if seconds <= 0:
+                        continue
                     with self.lock:
                         self._tone(hz)
                     cancel.wait(seconds)
+                    with self.lock:  # off after every note, so repeated notes stay separate
+                        if self.device is not None:
+                            self.device.off()
             except Exception as e:  # a buzzer fault must never reach the control loop
                 print(f'Buzzer error: {e}', flush=True)
             finally:
