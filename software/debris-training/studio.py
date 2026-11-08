@@ -136,13 +136,15 @@ class Jobs:
         self.log = None
         self.kind = None
 
-    def start(self, kind, epochs, device):
+    def start(self, kind, epochs, device, fresh=False):
         if kind not in ('train', 'evaluate', 'export'):
             raise ValueError('Unknown task')
         if type(epochs) is not int or not 1 <= epochs <= 300:
             raise ValueError('Epochs must be 1-300')
         if device not in ('auto', 'cpu', 'mps', '0'):
             raise ValueError('Device must be auto / cpu / mps / 0')
+        if type(fresh) is not bool:
+            raise ValueError('fresh must be true or false')
         with self.lock:
             if self.process is not None and self.process.poll() is None:
                 raise ValueError('A task is already running; wait for it to finish')
@@ -152,7 +154,7 @@ class Jobs:
             command = [sys.executable, '-u', str(HERE / 'workflow.py'), kind,
                        '--root', str(self.root), '--device', device]
             if kind == 'train':
-                command += ['--epochs', str(epochs)]
+                command += ['--epochs', str(epochs)] + (['--fresh'] if fresh else [])
             with self.log.open('wb') as output:
                 self.process = subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT)
             self.kind = kind
@@ -299,7 +301,7 @@ class Handler(BaseHTTPRequestHandler):
                                                     data.get('negative'), data.get('revision'))
                 elif parsed.path == '/api/job':
                     result = self.server.jobs.start(data.get('kind'), data.get('epochs', 30),
-                                                    data.get('device', 'auto'))
+                                                    data.get('device', 'auto'), data.get('fresh', False))
                 else:
                     self.reply({'error': 'not found'}, 404)
                     return

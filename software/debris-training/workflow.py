@@ -183,6 +183,8 @@ def device_choice(requested):
 def model_path(args, initial=False):
     if args.model:
         return args.model
+    if initial and getattr(args, 'fresh', False):
+        return 'yolo11n.pt'
     previous = latest_model(args.root)
     if previous:
         return str(previous)
@@ -225,18 +227,21 @@ def run(args):
         name = unique_name('round')
         config = snapshot(root, root / 'snapshots' / name)
         weights = model_path(args, initial=True)
-        print(f'Using {weights} on device {device}; this round uses all confirmed training photos.', flush=True)
+        print(f'Using {weights} on device {device}; this round uses all confirmed training photos. '
+              f'Early stop after {args.patience} epochs without improvement.', flush=True)
         # New data starts a new fine-tuning round, never resume=True on the old dataset.
         model = YOLO(weights)
+        if args.patience < 0:
+            raise ValueError('patience must be >= 0')
         model.train(data=str(config), epochs=args.epochs, imgsz=args.imgsz, batch=args.batch,
                     device=device, workers=0, project=str(root / 'runs'), name=name,
-                    seed=42, patience=10, pretrained=True, plots=True, save=True,
+                    seed=42, patience=args.patience, pretrained=True, plots=True, save=True,
                     cache=False, close_mosaic=min(5, args.epochs), exist_ok=False)
         output = Path(model.trainer.save_dir)
         best = output / 'weights' / 'best.pt'
         if not best.exists():
             raise ValueError('Training produced no best.pt; check the log')
-        write_json(output / 'round.json', dict(model=str(best), started_from=weights,
+        write_json(output / 'round.json', dict(model=str(best), started_from=weights, patience=args.patience,
                    data=str(config), device=device, epochs=args.epochs, imgsz=args.imgsz,
                    ultralytics=importlib.metadata.version('ultralytics')))
         print(f'Training finished. Model: {best}\nValidation charts and results.csv: {output}', flush=True)
@@ -282,6 +287,10 @@ def main():
     parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--imgsz', type=int, default=640)
     parser.add_argument('--batch', type=int, default=4)
+    parser.add_argument('--fresh', action='store_true', help='train: start from yolo11n.pt instead of the last round')
+    parser.add_argument('--patience', type=int, default=50,
+                        help='train: stop after this many epochs without val improvement (0 = never). '
+                             'Fine-tuning dips first, so a small value stops too early')
     parser.add_argument('--split', choices=('val', 'test'), default='test')
     parser.add_argument('--source')
     parser.add_argument('--conf', type=float, default=.35)
