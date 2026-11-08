@@ -322,4 +322,21 @@ class BuzzerTests(unittest.TestCase):
         self.assertEqual(dev.value, 0); self.assertFalse(b.playing)
 
 
+    def test_extra_sounds_file_and_importer(self):
+        import subprocess, sys
+        from control import SOUNDS, load_sounds
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d)/'song.py'; src.write_text('def f():\n    melody = [(440, .2), (0, .1), (523, .3)]\n')
+            out = Path(d)/'sounds.json'
+            r = subprocess.run([sys.executable, str(HERE/'melody_from_python.py'), str(src), 'melody', 'my_song', '--out', str(out)],
+                               capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertEqual(load_sounds(out), ['my_song'])
+            self.assertEqual(SOUNDS['my_song'], [(440, .2), (0, .1), (523, .3)])
+            for bad in ({'Bad Name': [[440, .1]]}, {'x': [[9000, .1]]}, {'x': [[440, 3]]}, {'x': [[440, 2]]*31}):
+                out.write_text(json.dumps(bad))
+                with self.assertRaises(ValueError): load_sounds(out)
+            SOUNDS.pop('my_song')
+
+
 if __name__ == '__main__': unittest.main()

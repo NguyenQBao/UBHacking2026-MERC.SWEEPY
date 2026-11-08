@@ -96,6 +96,28 @@ SOUNDS = {
 }
 
 
+def load_sounds(path):
+    """Add named melodies from a JSON file {name: [[hz, seconds], ...]}; validated, max 60 s each."""
+    import json, re
+    data = json.loads(open(path, encoding='utf-8').read())
+    if not isinstance(data, dict) or len(data) > 20:
+        raise ValueError('sounds file must be an object with at most 20 melodies')
+    for name, notes in data.items():
+        if not re.fullmatch(r'[a-z0-9_]{1,24}', name):
+            raise ValueError(f'Bad sound name {name!r}: use a-z, 0-9, _')
+        if not isinstance(notes, list) or not 1 <= len(notes) <= 500:
+            raise ValueError(f'{name}: 1..500 notes')
+        for note in notes:
+            if (not isinstance(note, list) or len(note) != 2
+                    or any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in note)
+                    or not 0 <= note[0] <= 5000 or not 0 <= note[1] <= 2):
+                raise ValueError(f'{name}: each note is [hz 0..5000, seconds 0..2]')
+        if sum(n[1] for n in notes) > 60:
+            raise ValueError(f'{name}: longer than 60 s')
+    SOUNDS.update({k: [tuple(n) for n in v] for k, v in data.items()})
+    return list(data)
+
+
 class Buzzer:
     """Detection beep plus short named melodies; GPIO only with hardware=True.
 

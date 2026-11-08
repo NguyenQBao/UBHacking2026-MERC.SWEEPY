@@ -43,7 +43,7 @@ select{font-size:17px;padding:10px;border-radius:8px}.rec{border-collapse:collap
 <p><a href="/raw.jpg" download="calibration.jpg">Save raw image for calibration</a></p></section>
 
 <section><h2>Sound</h2>
-<button data-sound="test">Test sound</button><button data-sound="success">Collected</button><button data-sound="miss">Missed</button><button data-sound="all_clear">All clear</button><button data-sound="birthday">Happy Birthday</button>
+<button data-sound="test">Test sound</button><button data-sound="success">Collected</button><button data-sound="miss">Missed</button><button data-sound="all_clear">All clear</button><button data-sound="birthday">Happy Birthday</button><span id="extraSounds"></span>
 <p><label><input type="checkbox" id="localSound" checked> Also play on this computer</label> <span id="buzzerType" class="hint"></span></p>
 <p class="hint">Collected / Missed / All clear play automatically during Auto. STOP cuts the sound too.</p>
 </section>
@@ -82,7 +82,10 @@ function render(s){
   if(!s.brush_enabled){b.textContent='DISABLED (--wheels-only)';b.className='badge na'}
   else{const on=s.motors&&s.motors[2]!==0;b.textContent=on?'ON':'OFF';b.className='badge '+(on?'on':'off')}
   document.querySelector('#brushMode').textContent='mode: '+s.brush_mode;
-  if(s.sounds)sounds=s.sounds;
+  if(s.sounds&&!Object.keys(sounds).length){sounds=s.sounds;const box=document.querySelector('#extraSounds');
+    for(const name of Object.keys(sounds)){if(document.querySelector(`[data-sound="${name}"]`))continue;
+      const b=document.createElement('button');b.textContent=name.replace(/_/g,' ');b.dataset.sound=name;
+      b.onclick=()=>{unlockAudio();send({command:'sound',name})};box.append(b)}}
   if(soundSeq!==null&&s.sound_seq>soundSeq)playLocal(s.sound_name);
   soundSeq=s.sound_seq;
   document.querySelector('#buzzerType').textContent=s.buzzer_passive?'Car buzzer: passive (plays melodies)':'Car buzzer: active (fixed pitch, rhythm only)';

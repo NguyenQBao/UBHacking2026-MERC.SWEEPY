@@ -9,7 +9,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import cv2
-from control import SOUNDS, Buzzer, Controller, Motors, validate
+from control import SOUNDS, Buzzer, Controller, Motors, load_sounds, validate
 from vision import Ground, Vision
 
 HERE = Path(__file__).resolve().parent
@@ -217,6 +217,7 @@ def main():
     p.add_argument('--image', help='Offline image; simulation only')
     p.add_argument('--hardware', action='store_true', help='Actually open GPIO; otherwise no GPIO imports')
     p.add_argument('--wheels-only', action='store_true', help='Never open brush GPIO; refuse brush/automatic commands')
+    p.add_argument('--sounds', default=str(HERE/'sounds.json'), help='Extra melodies JSON (used if the file exists)')
     p.add_argument('--port', type=int, default=8091)
     args = p.parse_args()
     if not 1024 <= args.port <= 65535 or (args.hardware and args.image):
@@ -225,6 +226,8 @@ def main():
     old_handlers = {}
     try:
         cfg = validate(json.loads(Path(args.config).read_text()))
+        if Path(args.sounds).is_file():
+            print(f'Extra sounds: {", ".join(load_sounds(args.sounds))}', flush=True)
         hsv = None
         if args.hsv:
             hsv = [int(x) for x in args.hsv.split(',')]
